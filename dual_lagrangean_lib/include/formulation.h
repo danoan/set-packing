@@ -5,30 +5,21 @@
 #include <string>
 #include <sstream>
 #include "constants.h"
+#include "types.h"
+#include "restriction_line.h"
 
 using namespace std;
 
-typedef struct _restriction_line_member{
-    int index;
-    double cost;
-} restriction_line_member;
-
-typedef struct _line{
-    vector< restriction_line_member > members;
-    double rhs;
-    int op;
-} restriction_line;
-
-typedef vector<restriction_line>::iterator line_it;
-typedef vector<restriction_line_member>::iterator member_it;
-
 class Formulation{
+private:
+    void copy_formulation(Formulation& p_f);
+
 protected:
-    vector<restriction_line> _restrictions;
+    vector< RestrictionLine* > _restrictions;
     vector<double> _c;
     int _objective_type;
 
-    bool check_restriction(restriction_line& rl,vector<double>& x);
+    bool check_restriction(RestrictionLine& rl,vector<double>& x);
 
 public:
     Formulation(){};
@@ -40,8 +31,9 @@ public:
 
     Formulation(Formulation& f);
 
-    inline vector< restriction_line >::iterator restrictions_begin(){ return _restrictions.begin(); };
-    inline vector< restriction_line >::iterator restrictions_end(){ return _restrictions.end(); };
+    inline vector< RestrictionLine* >::iterator begin(){ return _restrictions.begin(); };
+    inline vector< RestrictionLine* >::iterator end(){ return _restrictions.end(); };    
+
     inline int num_restrictions(){return _restrictions.size();};
 
     inline vector<double>& c(){ return _c; };    

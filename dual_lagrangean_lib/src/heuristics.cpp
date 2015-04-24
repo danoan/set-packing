@@ -5,15 +5,15 @@ bool compare_benefit_cost(benefit_cost_pair a, benefit_cost_pair b){
     return a.value > b.value;
 }
 
-vector<benefit_cost_pair> compute_benefit_cost(restriction_line& br, vector<double>& cost_vector){
+vector<benefit_cost_pair> compute_benefit_cost(RestrictionLine& br, vector<double>& cost_vector){
     vector<benefit_cost_pair> benefit_cost;
 
-    for(member_it it_m=br.members.begin();it_m!=br.members.end();it_m++){
+    for(member_it it_m=br.begin();it_m!=br.end();it_m++){
         benefit_cost_pair bcp;
-        restriction_line_member rlm = (*it_m);
+        RestrictionMember rm = (*it_m);
 
-        bcp.value = ( (cost_vector[rlm.index]/rlm.cost) );
-        bcp.index = rlm.index;
+        bcp.value = ( (cost_vector[rm.index]/rm.cost) );
+        bcp.index = rm.index;
 
         benefit_cost.push_back(bcp);
     }

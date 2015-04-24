@@ -508,10 +508,11 @@ void initvect(allinfo *a)
 				  copyproblem
    ====================================================================== */
 
-void copyproblem(item *f, item *l, int *p, int *w, int *x)
+void copyproblem(item *f, item *l, double *p, double *w, int *x)
 {
   register item *i, *m;
-  register int *pp, *ww, *xx;
+  register int *xx;
+  register double *ww,*pp;
 
   for (i = f, m = l+1, pp = p, ww = w, xx = x; i != m; i++, pp++, ww++, xx++) {
     i->p = *pp; i->w = *ww; i->x = xx; 
@@ -527,13 +528,13 @@ void findbreak(allinfo *a)
 {
   register item *i, *m;
   register stype psum, wsum, c, r;
-
+  printf("CRUX BA\n");
   psum = 0; wsum = 0; c = a->cstar;
   for (i = a->fitem; wsum <= c; i++) { 
     *(i->x) = 1; psum += i->p; wsum += i->w; 
   }
   i--; psum -= i->p; wsum -= i->w; /* we went one item too far */
-
+  printf("CARA BA\n");
   a->fsort   = a->fpart;
   a->lsort   = a->lpart;
   a->ftouch  = a->fpart;
@@ -542,7 +543,7 @@ void findbreak(allinfo *a)
   a->psumb   = psum;
   a->wsumb   = wsum;
   a->dantzig = psum + ((c - wsum) * (ptype) i->p) / i->w;
- 
+  
   /* find greedy solution */ 
   r = c - wsum;
   for (i = a->b, m = a->litem; i <= m; i++) {
@@ -559,7 +560,7 @@ void findbreak(allinfo *a)
 				minknap
    ====================================================================== */
 
-stype minknap(int n, int *p, int *w, int *x, int c)
+stype minknap(int n, double *p, double *w, int *x, double c)
 {
   allinfo a;
   item *tab;
@@ -568,7 +569,9 @@ stype minknap(int n, int *p, int *w, int *x, int c)
   /* allocate space for internal representation */
   tab = (item *) palloc(sizeof(item) * n);
   a.fitem = &tab[0]; a.litem = &tab[n-1];
+  
   copyproblem(a.fitem, a.litem, p, w, x);
+  
   a.n           = n;
   a.cstar       = c;
 
@@ -583,9 +586,11 @@ stype minknap(int n, int *p, int *w, int *x, int c)
   a.intv1 = a.intv1b = &inttab[0];
   a.intv2 = a.intv2b = &inttab[SORTSTACK - 1];
   a.fsort = a.litem; a.lsort = a.fitem;
+  printf("OIOIO\n");
   partsort(&a, a.fitem, a.litem, 0, PARTIATE);
+  printf("AIAIAIA\n");
   findbreak(&a);
-
+  printf("UIUIUIUI\n");
   a.ub        = a.dantzig;
   a.firsttime = TRUE;
 

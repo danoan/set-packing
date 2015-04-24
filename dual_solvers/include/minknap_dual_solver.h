@@ -1,25 +1,29 @@
-#ifndef __SIMPLE_DUAL_SOLVER__
-#define __SIMPLE_DUAL_SOLVER__
+#ifndef __MINKNAP_DUAL_SOLVER__
+#define __MINKNAP_DUAL_SOLVER__
 
 #include <cmath>
+#include <cstdio>
 
 #include "dual_lagrangean_method.h"
 #include "constants.h"
 #include "heuristics.h"
 #include "subgradient_method.h"
+#include "pisinger.h"
+#include "real_to_int.h"
+#include "util.h"
 
 extern bool DEBUG;
 
-class SimpleDualSolver:DualLagrangeanMethod{
+class MinknapDualSolver:DualLagrangeanMethod{
 private:
     Formulation _f;
     LagrangeanFormulation _lf;
 
     vector<benefit_cost_pair> _primal_bc;
     vector<benefit_cost_pair> _lagrangean_bc;
+    vector<double> _summed_coef_restrictions;
 
-    RestrictionLine _primal_backpack_restriction;
-    RestrictionLine get_backpack_restriction(Formulation& f);
+    RestrictionLine* get_backpack_restriction(Formulation& f);
 
     /*Implemented virtual functions*/
     solution_pair find_primal_solution();
@@ -29,7 +33,7 @@ private:
                                       solution_pair& d, vector<double>& lbda, int max_N);
 
 public:
-    SimpleDualSolver(Formulation& p_f);
+    MinknapDualSolver(Formulation& p_f);
     dual_lagrangean_solution solve(int max_N);
 };
 

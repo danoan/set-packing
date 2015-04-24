@@ -113,8 +113,8 @@
 
 typedef int           boolean;
 typedef long          ntype;   /* number of states/items   */
-typedef long          itype;   /* item profits and weights */
-typedef long          stype;   /* sum of pofit or weight   */
+typedef double        itype;   /* item profits and weights */
+typedef double        stype;   /* sum of pofit or weight   */
 typedef double        ptype;   /* product type (sufficient precision) */
 typedef unsigned long btype;   /* binary representation of solution */
 
@@ -208,6 +208,6 @@ void simpreduce(int side, item **f, item **l, allinfo *a);
 void reduceset(allinfo *a);
 void initfirst(allinfo *a, stype ps, stype ws);
 void initvect(allinfo *a);
-void copyproblem(item *f, item *l, int *p, int *w, int *x);
+void copyproblem(item *f, item *l, double *p, double *w, int *x);
 void findbreak(allinfo *a);
-stype minknap(int n, int *p, int *w, int *x, int c);
+stype minknap(int n, double *p, double *w, int *x, double c);

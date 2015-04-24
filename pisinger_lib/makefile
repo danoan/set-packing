@@ -10,7 +10,10 @@ bin_path=$(build)/bin
 source_path=src
 header_path=include
 
-all: clear check minknap.o main.o main.out
+all: lib main.out
+
+lib: clear check minknap.o pisinger.o
+	ar rc $(lib_path)/libpisinger.a  $(object_path)/minknap.o $(object_path)/pisinger.o
 
 check:
 	test -d $(build) || mkdir $(build)
@@ -22,11 +25,11 @@ check:
 minknap.o:
 	gcc -I$(header_path) -o $(object_path)/minknap.o -c $(source_path)/minknap.c
 
-main.o:
-	g++ -I$(header_path) -o $(object_path)/main.o -c $(source_path)/main.cpp
+pisinger.o:
+	g++ -I$(header_path) -o $(object_path)/pisinger.o -c $(source_path)/pisinger.cpp
 
 main.out:
-	g++ -I$(header_path) -o $(bin_path)/main.out $(object_path)/main.o $(object_path)/minknap.o
+	g++ -I$(header_path) -o $(bin_path)/main.out $(source_path)/main.cpp -L$(lib_path) -lpisinger
 
 clear:
 	rm -f -r $(build)/*

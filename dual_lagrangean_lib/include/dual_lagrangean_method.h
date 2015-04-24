@@ -29,13 +29,6 @@ public:
     virtual dual_lagrangean_solution solve(int max_N) = 0;
 };
 
-
-class EX_NO_LBDA_IMPROVE_SOLUTION:public exception{
-    virtual const char* what() const throw(){
-        return "There is no lbda that improves the current best solution.";
-    }
-};
-
 void log_start(Formulation& f, LagrangeanFormulation& lf, vector<double>& lbda, solution_pair& p, solution_pair& d);
 
 

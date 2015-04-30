@@ -5,12 +5,12 @@ bool compare_benefit_cost(benefit_cost_pair a, benefit_cost_pair b){
     return a.value > b.value;
 }
 
-vector<benefit_cost_pair> compute_benefit_cost(RestrictionLine& br, vector<double>& cost_vector){
+vector<benefit_cost_pair> compute_benefit_cost(ConstraintLine& br, vector<double>& cost_vector){
     vector<benefit_cost_pair> benefit_cost;
 
     for(member_it it_m=br.begin();it_m!=br.end();it_m++){
         benefit_cost_pair bcp;
-        RestrictionMember rm = (*it_m);
+        ConstraintMember rm = (*it_m);
 
         bcp.value = ( (cost_vector[rm.index]/rm.cost) );
         bcp.index = rm.index;
@@ -33,7 +33,7 @@ solution_pair find_int_solution_by_benefit_cost_heuristic(Formulation& f, vector
          bcp =  bc_vector[k];
          if(bcp.value<0){continue;}
          s.x[bcp.index] = 1;
-         if(f.check_restrictions(s.x)==false){
+         if(f.check_constraints(s.x)==false){
             s.x[bcp.index] = 0;
          }
     }
@@ -54,7 +54,7 @@ solution_pair find_int_feasible_solution_from_dual(solution_pair& d, Formulation
         if(d.x[bcp.index]==1){
             s.x[bcp.index]=1;
 
-            if(f.check_restrictions(s.x)==false){
+            if(f.check_constraints(s.x)==false){
                 s.x[bcp.index] = 0;
             }                    
         }
@@ -66,7 +66,7 @@ solution_pair find_int_feasible_solution_from_dual(solution_pair& d, Formulation
          if(bcp.value<0){continue;}
 
          s.x[bcp.index] = 1;
-         if(f.check_restrictions(s.x)==false){
+         if(f.check_constraints(s.x)==false){
             s.x[bcp.index] = 0;
          }
     }
@@ -98,7 +98,7 @@ solution_pair find_int_solution_by_lagrangean_heuristic(LagrangeanFormulation& l
             }                        
         }
 
-        if(lf.check_restrictions(s.x)==false){
+        if(lf.check_constraints(s.x)==false){
             s.x[j] = 0;
         }
 

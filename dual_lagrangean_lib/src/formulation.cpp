@@ -7,12 +7,12 @@ Formulation::Formulation(vector< vector<double> >& p_A, vector<double>& p_b, vec
         //ERROR
     }
     
-    RestrictionLine* rl;
+    ConstraintLine* rl;
     for(int i=0;i<p_A.size();i++){
-        rl = new RestrictionLine();
+        rl = new ConstraintLine();
 
         for(int j=0;j<p_A[i].size();j++){
-            RestrictionMember rm;
+            ConstraintMember rm;
 
             if(p_A[i][j]==0){
                 continue;
@@ -24,7 +24,7 @@ Formulation::Formulation(vector< vector<double> >& p_A, vector<double>& p_b, vec
         }
         rl->rhs( p_b[i] );
         rl->op( p_op[i] );
-        _restrictions.push_back(rl);
+        _constraints.push_back(rl);
     }
 }
 
@@ -38,11 +38,11 @@ Formulation::Formulation(vector< vector<int> >& p_A_index, vector< vector<double
         //ERROR
     }
     
-    RestrictionLine* rl;
+    ConstraintLine* rl;
     for(int i=0;i<p_A_index.size();i++){
-        rl = new RestrictionLine();
+        rl = new ConstraintLine();
         for(int j=0;j<p_A_index[i].size();j++){
-            RestrictionMember rm;
+            ConstraintMember rm;
 
             rm.index = p_A_index[i][j];
             rm.cost = p_A_cost[i][j];
@@ -50,7 +50,7 @@ Formulation::Formulation(vector< vector<int> >& p_A_index, vector< vector<double
         }
         rl->rhs( p_b[i] );
         rl->op( p_op[i] );
-        _restrictions.push_back(rl);
+        _constraints.push_back(rl);
     }
 }
 
@@ -59,10 +59,10 @@ Formulation::Formulation(Formulation& f){
 }
 
 void Formulation::copy_formulation(Formulation& p_f){
-    _restrictions.resize(p_f._restrictions.size());
+    _constraints.resize(p_f._constraints.size());
     _c.resize(p_f._c.size());
 
-    _restrictions = p_f._restrictions;
+    _constraints = p_f._constraints;
     _c = p_f._c;
     _objective_type = p_f._objective_type;      
 }
@@ -76,10 +76,10 @@ double Formulation::compute(vector<double> x){
     return s;
 }
 
-bool Formulation::check_restriction(RestrictionLine& rl,vector<double>& x){
+bool Formulation::check_constraint(ConstraintLine& rl,vector<double>& x){
     double sum = 0;
     
-    RestrictionMember rm;
+    ConstraintMember rm;
     for(member_it it_m=rl.begin();it_m!=rl.end();it_m++){
         rm = (*it_m);
         sum+= x[ rm.index ]*rm.cost;
@@ -106,11 +106,11 @@ bool Formulation::check_restriction(RestrictionLine& rl,vector<double>& x){
     return true;
 }
 
-bool Formulation::check_restrictions(vector<double> x){    
-    RestrictionLine rl;
+bool Formulation::check_constraints(vector<double> x){    
+    ConstraintLine rl;
     for(line_it it_r=begin();it_r!=end();it_r++){
         rl = *(*it_r);
-        if(check_restriction( rl,x )==false) return false;
+        if(check_constraint( rl,x )==false) return false;
     }
 
     return true;
@@ -130,8 +130,8 @@ string Formulation::to_str(){
     }
     s<<"\t subject to\n";
 
-    RestrictionLine rl;
-    RestrictionMember rm;
+    ConstraintLine rl;
+    ConstraintMember rm;
     for(line_it it_r=begin();it_r!=end();it_r++){
         rl = *(*it_r);
         for(member_it it_m=rl.begin();it_m!=rl.end();it_m++){

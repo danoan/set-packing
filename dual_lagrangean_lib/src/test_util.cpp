@@ -142,7 +142,7 @@ void test_stress_success(){
     values_test<10,13>(A,ex_A,b,ex_b,c,ex_c,op,ex_op);    
 }
 
-void test_no_restrictions_number(){
+void test_no_constraints_number(){
     FILE* f = load_file("input_util_3");
 }
 

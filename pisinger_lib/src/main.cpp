@@ -1,22 +1,24 @@
 #include <stdio.h>
 #include "pisinger.h"
 
-int main(){
-  double p[6] = {7,4,8,6,2,5};
-  double w[6] = {2,3,5,4,2,3};
+void test_1(){
+  double p[6] = {7.0,4.0,8.0,6.0,2.0,5.0};
+  double w[6] = {2.0,3.0,5.0,4.0,2.0,3.0};
   int x[6];
 
   int n = 6;
-  double c = 9;
+  double c = 9.0;
 
-  int z = minknap(n,p,w,x,c);
-  int i;
+  double z = minknap(n,p,w,x,c);  
 
   printf("x= (");
-  for(i=0;i<n;i++){
+  for(int i=0;i<n;i++){
     printf("%d,",x[i]);
   }
-  printf(")\nz= %d\n",z);
+  printf(")\nz= %lf\n",z);  
+}
 
+int main(){
+  test_1();
   return 0;
 }

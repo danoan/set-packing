@@ -8,20 +8,20 @@ SimpleDualSolver::SimpleDualSolver(Formulation& p_f):_f(p_f){
     _lagrangean_bc = compute_benefit_cost(_primal_backpack_restriction,_lf.lagrangean_costs());
 }
 
-RestrictionLine SimpleDualSolver::get_backpack_restriction(Formulation& f){
-    RestrictionLine backpack_restriction;
+ConstraintLine SimpleDualSolver::get_backpack_restriction(Formulation& f){
+    ConstraintLine backpack_restriction;
 
     double sum_aj, sum_bj;
     sum_bj = 0;
 
-    RestrictionMember backpack_member;
+    ConstraintMember backpack_member;
     for(int j=0;j<f.c().size();j++){
         sum_aj=0;
         for(line_it it_r=f.begin();it_r!=f.end();it_r++){
-            RestrictionLine rl = *(*it_r);
+            ConstraintLine rl = *(*it_r);
 
             for(member_it it_m=rl.begin();it_m!=rl.end();it_m++){
-                RestrictionMember rm = (*it_m);
+                ConstraintMember rm = (*it_m);
                 if(rm.index==j){
                     sum_aj+= rm.cost;
                 }
@@ -45,7 +45,7 @@ RestrictionLine SimpleDualSolver::get_backpack_restriction(Formulation& f){
 
 dual_lagrangean_solution SimpleDualSolver::solve(int max_N){
     vector<double> lbda;
-    for(int i=0;i<_f.num_restrictions();i++){
+    for(int i=0;i<_f.num_constraints();i++){
         lbda.push_back(1);
     }    
 

@@ -1,22 +1,18 @@
 #include "minknap_dual_solver.h"
 
 MinknapDualSolver::MinknapDualSolver(Formulation& p_f){
-    RestrictionLine* _primal_backpack_restriction = get_backpack_restriction(p_f);      
-
-    vector<RestrictionLine*> extra_primal;
-    extra_primal.push_back(_primal_backpack_restriction);
+    ConstraintLine* _primal_knapsack_restriction = get_knapsack_constraint(p_f);      
 
     _f = Formulation(p_f);
-    _lf = LagrangeanFormulation(_f, true, NULL, extra_primal, vector<RestrictionLine*>());
-    // _lf = LagrangeanFormulation(_f);
+    _lf = LagrangeanFormulation(_f);
     
-    _primal_bc = compute_benefit_cost(*_primal_backpack_restriction,_f.c());
-    _lagrangean_bc = compute_benefit_cost(*_primal_backpack_restriction,_lf.lagrangean_costs());    
+    _primal_kc = compute_benefit_cost(*_primal_knapsack_restriction,_f.c());
+    _lagrangean_kc = compute_benefit_cost(*_primal_knapsack_restriction,_lf.lagrangean_costs());    
 }
 
 dual_lagrangean_solution MinknapDualSolver::solve(int max_N){
     vector<double> lbda;
-    for(int i=0;i<_f.num_restrictions();i++){
+    for(int i=0;i<_f.num_constraints();i++){
         lbda.push_back(1);
     }    
 
@@ -35,21 +31,20 @@ dual_lagrangean_solution MinknapDualSolver::solve(int max_N){
     return s;    
 }
 
-RestrictionLine* MinknapDualSolver::get_backpack_restriction(Formulation& f){
-    RestrictionLine* backpack_restriction = new RestrictionLine();
-    _summed_coef_restrictions.resize(f.c().size());
+ConstraintLine* MinknapDualSolver::get_knapsack_constraint(Formulation& f){
+    ConstraintLine* backpack_restriction = new ConstraintLine();
 
     double sum_aj, sum_bj;
     sum_bj = 0;
 
-    RestrictionMember backpack_member;
+    ConstraintMember backpack_member;
     for(int j=0;j<f.c().size();j++){
         sum_aj=0;
         for(line_it it_r=f.begin();it_r!=f.end();it_r++){
-            RestrictionLine rl = *(*it_r);
+            ConstraintLine rl = *(*it_r);
 
             for(member_it it_m=rl.begin();it_m!=rl.end();it_m++){
-                RestrictionMember rm = (*it_m);
+                ConstraintMember rm = (*it_m);
                 if(rm.index==j){
                     sum_aj+= rm.cost;
                 }
@@ -58,7 +53,6 @@ RestrictionLine* MinknapDualSolver::get_backpack_restriction(Formulation& f){
         backpack_member.index = j;
         backpack_member.cost = sum_aj;
 
-        _summed_coef_restrictions[j] = sum_aj;
 
         backpack_restriction->add(backpack_member);
     }
@@ -73,14 +67,14 @@ RestrictionLine* MinknapDualSolver::get_backpack_restriction(Formulation& f){
 }
 
 solution_pair MinknapDualSolver::find_primal_solution(){
-    solution_pair s = find_int_solution_by_benefit_cost_heuristic(_f, _primal_bc);
+    solution_pair s = find_int_solution_by_benefit_cost_heuristic(_f, _primal_kc);
     s.vx = _f.compute(s.x);
 
     return s;
 }
 
 solution_pair MinknapDualSolver::update_primal(solution_pair& p, solution_pair& d){
-    solution_pair s = find_int_feasible_solution_from_dual(d,_f,_primal_bc);
+    solution_pair s = find_int_feasible_solution_from_dual(d,_f,_primal_kc);
     s.vx = _f.compute(s.x);        
 
     if(_f.objective_type()==MAX_TYPE){
@@ -97,68 +91,96 @@ solution_pair MinknapDualSolver::update_primal(solution_pair& p, solution_pair& 
     return s;
 }
 
+int MinknapDualSolver::active_constraints_for_vars(vector<int>& Ix){
+    /*
+        It returns how many constraints uses the variables on Ix
+        Ix is a vector of indexes of variables x. The indexes are supposed to be in order
+    */
+
+    map<int,char> marker;
+    vector<int> constr_indexes;
+    int k=0;
+
+    for(int i=0;i<Ix.size();i++){
+
+        constr_indexes = _lf.constr_var_appears( Ix[i] );
+
+        for(int j=0;j<constr_indexes.size();j++){
+            if( marker.find( constr_indexes[j] ) == marker.end() ){
+                marker[constr_indexes[j]] = 1;
+                k+=1; 
+            }
+        }
+    }
+
+    return k;
+}
+
 solution_pair MinknapDualSolver::find_dual_solution(vector<double>& lbda){
     _lf.lbda(lbda);    
     
-    // printf("%d %d\n",_lf.lagrangean_costs().size(),_summed_coef_restrictions.size());
+    solution_pair d;
+    vector<int> Ix;
 
-    double* costs = new double[_lf.lagrangean_costs().size()];
-    double* weights = new double[_summed_coef_restrictions.size()];
-
-    int m=_lf.lagrangean_costs().size();
-    for(int i=0;i<m;i++){ 
-        costs[i] = _lf.lagrangean_costs()[i] + 1.0; 
-        weights[i] = _summed_coef_restrictions[i];
-    }
-
-    for(int i=0;i<m;i++){ 
-        if(costs[i]<0){
-            costs[i] = 0.0;
-        }
-    }
-
-    int* x = new int[m];
-    vector<double> xd;
-
+    //Store the variables indexes that has non-negative lagrangean costs
     for(int i=0;i<_lf.lagrangean_costs().size();i++){
-        xd.push_back(0);
-    }    
-
-    solution_pair d1 = find_int_solution_by_lagrangean_heuristic(_lf);
-    solution_pair d2;    
-
-    if(m!=0){
-        int a = minknap(m, costs , weights, x, 500);        
-        m=0;
-        for(int i=0;i<_lf.lagrangean_costs().size();i++){
-            xd[ i ] = x[i];    
+        if( _lf.lagrangean_costs()[i]>=0 ){
+            Ix.push_back(i);
+            // printf("LC: %lf\n",_lf.lagrangean_costs()[i]);
         }
     }
 
-    d2.x = xd;
-    d2.vx = _lf.compute(d2.x);            
+    //If there are more than 0 of such variables, prepare the correspondent knapsack constraint
+    if( Ix.size()>0 ){
+        int m = Ix.size();
+        double n = (double) active_constraints_for_vars(Ix);
 
-    //========
-    //
-    //d2 deveria retornar sempre um limite superior, mas ele está retornando limites inferiores também.
-    //
-
-    // printf("%lf - %lf\n",d1.vx,d2.vx);
-    // print_vector("NORMAL",d1.x);
-    // print_vector("PISINGER",d2.x);
-    // print_vector("LC",_lf.lagrangean_costs());
-
-    for(int i=0;i<_lf.lagrangean_costs().size();i++){
-        if(d2.x[i]==1 && _lf.lagrangean_costs()[i]<0.0){
-            printf("DEU RUIM %d: %lf\n",i,_lf.lagrangean_costs()[i]);
+        double* costs = (double*) malloc(sizeof(double)*m);
+        for(int i=0;i<m;i++){
+            costs[i] = _lf.lagrangean_costs()[ Ix[i] ];
         }
 
-        if(d1.x[i]==1 && _lf.lagrangean_costs()[i]<0.0){
-            printf("DEU RUIM DUPLO %d: %lf\n",i,_lf.lagrangean_costs()[i]);
+        
+        double* weights = (double*) malloc(sizeof(double)*m);
+        double sum_w=0;
+        for(int i=0;i<m;i++){
+            weights[i] = _lf.times_var_appears(Ix[i]);
+            sum_w+=weights[i];
         }        
-    }
 
-    return d2;
+        solution_pair d2;                
+        int* x_line = (int*) malloc(sizeof(int)*Ix.size());
+
+        //If the sum of the weights are lesser than the kanpsack contraint threshold, the optimal solution is
+        //to set all variables to 1
+        if(sum_w<=n){
+            for(int i=0;i<m;i++){
+                x_line[i]=1;
+            }
+        }else{
+            minknap(m,costs,weights,x_line,n); 
+        }
+
+
+        int j=0;
+        for(int i=0;i<_lf.lagrangean_costs().size();i++){
+            if(Ix[j]!=i){
+                d.x.push_back(0.0);
+            }else{
+                d.x.push_back( (double) x_line[j++]);
+            }
+        }
+        d.vx = _lf.compute(d.x);    
+
+        free(costs);
+        free(weights);
+        free(x_line);
+
+    }else{       
+        d = find_int_solution_by_lagrangean_heuristic(_lf);
+    }
+    
+    return d;
 }
 
 solution_pair MinknapDualSolver::solve_lagrangean_subproblem(Formulation& f, LagrangeanFormulation& lf, solution_pair& p,

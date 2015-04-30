@@ -1,7 +1,9 @@
 #include "subgradient_method.h"
 
-SubgradientMethod::SubgradientMethod(LagrangeanFormulation& lf, int max_N, bool debug):_pi(2),_N(1),_num_it(0),_max_N(max_N),_DEBUG(debug){
-    _G.resize(lf.num_restrictions());
+SubgradientMethod::SubgradientMethod(LagrangeanFormulation& lf, int max_N, bool debug):_pi(2),_N(1),_num_it(0),
+                                                                                        _max_N(max_N),_DEBUG(debug), 
+                                                                                        _no_improvement(0){
+    _G.resize(lf.num_constraints());
 }
 
 void SubgradientMethod::compute_gradient(LagrangeanFormulation& lf, solution_pair& d){
@@ -12,8 +14,8 @@ void SubgradientMethod::compute_gradient(LagrangeanFormulation& lf, solution_pai
     _sum_square_g = 0;
     int i;
     line_it it_r;
-    RestrictionLine rl;
-    RestrictionMember rm;
+    ConstraintLine rl;
+    ConstraintMember rm;
     for(i=0,it_r=lf.dual_begin();it_r!=lf.dual_end();it_r++,i++){
         rl = *(*it_r);
         sum_a=0;

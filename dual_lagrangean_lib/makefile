@@ -19,7 +19,7 @@ mkfile_path = $(abspath $(lastword $(MAKEFILE_LIST)))
 current_dir = $(dir $(mkfile_path))
 
 
-lib: clear check formulation.o heuristics.o lagrangean_formulation.o dual_lagrangean_method.o util.o subgradient_method.o restriction_line.o
+lib: clear check formulation.o heuristics.o lagrangean_formulation.o dual_lagrangean_method.o util.o subgradient_method.o constraint_line.o
 	ar rc $(lib_path)/libpack.a $(object_path)/*.o
 
 test: lib
@@ -50,8 +50,8 @@ dual_lagrangean_method.o: check
 subgradient_method.o: check
 	g++ -I $(header_path) -o $(object_path)/subgradient_method.o -c $(source_path)/subgradient_method.cpp -O3 -w	
 
-restriction_line.o: check
-	g++ -I $(header_path) -o $(object_path)/restriction_line.o -c $(source_path)/restriction_line.cpp -O3 -w
+constraint_line.o: check
+	g++ -I $(header_path) -o $(object_path)/constraint_line.o -c $(source_path)/constraint_line.cpp -O3 -w
 
 util.o: check
 	g++ -I $(header_path) -o $(object_path)/util.o -c $(source_path)/util.cpp -O3 -w

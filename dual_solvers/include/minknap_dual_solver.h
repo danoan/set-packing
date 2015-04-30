@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <cstdio>
+#include <map>
 
 #include "dual_lagrangean_method.h"
 #include "constants.h"
@@ -19,11 +20,11 @@ private:
     Formulation _f;
     LagrangeanFormulation _lf;
 
-    vector<benefit_cost_pair> _primal_bc;
-    vector<benefit_cost_pair> _lagrangean_bc;
-    vector<double> _summed_coef_restrictions;
+    vector<benefit_cost_pair> _primal_kc;
+    vector<benefit_cost_pair> _lagrangean_kc;
 
-    RestrictionLine* get_backpack_restriction(Formulation& f);
+    ConstraintLine* get_knapsack_constraint(Formulation& f);
+    int active_constraints_for_vars(vector<int>& Ix);
 
     /*Implemented virtual functions*/
     solution_pair find_primal_solution();

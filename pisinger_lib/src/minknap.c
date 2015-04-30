@@ -1,6 +1,6 @@
 #include "minknap.h"
 /* ======================================================================
-				  errorx
+          errorx
    ====================================================================== */
 
 void errorx(char *str, ...)
@@ -16,7 +16,7 @@ void errorx(char *str, ...)
 
 
 /* ======================================================================
-				  palloc
+          palloc
    ====================================================================== */
 
 void pfree(void *p)
@@ -39,7 +39,7 @@ void *palloc(long size)
 
 
 /* ======================================================================
-				  findvect
+          findvect
    ====================================================================== */
 
 state *findvect(stype ws, state *f, state *l)
@@ -62,7 +62,7 @@ state *findvect(stype ws, state *f, state *l)
 
 
 /* ======================================================================
-				push/pop
+        push/pop
    ====================================================================== */
 
 void push(allinfo *a, int side, item *f, item *l)
@@ -81,16 +81,16 @@ void pop(allinfo *a, int side, item **f, item **l)
   interval *pos;
   switch (side) {
     case LEFT : if (a->intv1 == a->intv1b) errorx("pop left");
-		(a->intv1)--; pos = a->intv1; break;
+    (a->intv1)--; pos = a->intv1; break;
     case RIGHT: if (a->intv2 == a->intv2b) errorx("pop right");
-		(a->intv2)++; pos = a->intv2; break;
+    (a->intv2)++; pos = a->intv2; break;
   }
   *f = pos->f; *l = pos->l;
 }
 
 
 /* ======================================================================
-				improvesolution
+        improvesolution
    ====================================================================== */
 
 void improvesolution(allinfo *a, state *v)
@@ -106,7 +106,7 @@ void improvesolution(allinfo *a, state *v)
 
 
 /* ======================================================================
-				definesolution
+        definesolution
    ====================================================================== */
 
 void definesolution(allinfo *a)
@@ -125,17 +125,22 @@ void definesolution(allinfo *a)
   f    = a->fsort - 1;
   l    = a->lsort + 1;
 
+  
   for (j = 0; j < MAXV; j++) {
     k = a->ovect & ((btype) 1 << j);
     i = a->ovitem[j]; if (i == NULL) continue;
+    printf("%d\n",*(i->x));
     if (*(i->x) == 1) {
       if (i > f) f = i;
       if (k) { psum += i->p; wsum += i->w; *(i->x) = 0; }
+          
     } else {
+            
       if (i < l) l = i;
       if (k) { psum -= i->p; wsum -= i->w; *(i->x) = 1; }
     }
   }
+  
   a->welldef = (psum == a->psumb) && (wsum == a->wsumb);
 
   /* prepare for next round */
@@ -154,7 +159,7 @@ void definesolution(allinfo *a)
 
 
 /* ======================================================================
-				median
+        median
    ====================================================================== */
 
 item *median(item *f1, item *l1, ntype s)
@@ -180,10 +185,10 @@ item *median(item *f1, item *l1, ntype s)
     if (d > 1) {
       if (DET(f->p, f->w, m->p, m->w) < 0) SWAP(f, m);
       if (d > 2) {
-	if (DET(m->p, m->w, l->p, l->w) < 0) {
-	  SWAP(m, l);
-	  if (DET(f->p, f->w, m->p, m->w) < 0) SWAP(f, m);
-	}
+  if (DET(m->p, m->w, l->p, l->w) < 0) {
+    SWAP(m, l);
+    if (DET(f->p, f->w, m->p, m->w) < 0) SWAP(f, m);
+  }
       }
     }
     if (d <= 3) { r = *q; break; }
@@ -205,7 +210,7 @@ item *median(item *f1, item *l1, ntype s)
 
 
 /* ======================================================================
-				partsort
+        partsort
    ====================================================================== */
 
 void partsort(allinfo *a, item *f, item *l, stype ws, int what)
@@ -259,7 +264,7 @@ void partsort(allinfo *a, item *f, item *l, stype ws, int what)
 
 
 /* ======================================================================
-				  haschance
+          haschance
    ====================================================================== */
 
 boolean haschance(allinfo *a, item *i, int side)
@@ -293,7 +298,7 @@ boolean haschance(allinfo *a, item *i, int side)
 
 
 /* ======================================================================
-				  multiply
+          multiply
    ====================================================================== */
 
 void multiply(allinfo *a, item *h, int side)
@@ -323,15 +328,15 @@ void multiply(allinfo *a, item *h, int side)
   for (i = r1, j = r1; (i != m) || (j != m); ) {
     if (i->wsum <= j->wsum + w) {
       if (i->psum > k->psum) {
-	if (i->wsum > k->wsum) k++; 
-	k->psum = i->psum; k->wsum = i->wsum;
-	k->vect = i->vect & mask0;
+  if (i->wsum > k->wsum) k++; 
+  k->psum = i->psum; k->wsum = i->wsum;
+  k->vect = i->vect & mask0;
       }
       i++; 
     } else {
       if (j->psum + p > k->psum) {
-	if (j->wsum + w > k->wsum) k++;
-	k->psum = j->psum + p; k->wsum = j->wsum + w; 
+  if (j->wsum + w > k->wsum) k++;
+  k->psum = j->psum + p; k->wsum = j->wsum + w; 
         k->vect = j->vect | mask1;
       }
       j++; 
@@ -347,7 +352,7 @@ void multiply(allinfo *a, item *h, int side)
 
 
 /* =========================================================================
-				   simpreduce
+           simpreduce
    ========================================================================= */
 
 void simpreduce(int side, item **f, item **l, allinfo *a)
@@ -369,7 +374,7 @@ void simpreduce(int side, item **f, item **l, allinfo *a)
     k = a->fsort - 1;
     while (i <= j) {
       if (DET(j->p, j->w, pb, wb) > r) {
-	SWAP(i, j); i++; redu++;       /* not feasible */
+  SWAP(i, j); i++; redu++;       /* not feasible */
       } else {
         SWAP(j, k); j--; k--;  /* feasible */
       }
@@ -391,7 +396,7 @@ void simpreduce(int side, item **f, item **l, allinfo *a)
 
 
 /* ======================================================================
-				  reduceset
+          reduceset
    ====================================================================== */
 
 void reduceset(allinfo *a)
@@ -422,8 +427,8 @@ void reduceset(allinfo *a)
       ps = f->p; ws = f->w; /* default: pick first item */
       simpreduce(LEFT, &f, &l, a);
       if (f <= l) {
-	partsort(a, f, l, 0, SORTALL); a->fsort = f;
-	ps = a->s->p; ws = a->s->w;
+  partsort(a, f, l, 0, SORTALL); a->fsort = f;
+  ps = a->s->p; ws = a->s->w;
       }
     }
   } else {
@@ -440,8 +445,8 @@ void reduceset(allinfo *a)
       pt = l->p; wt = l->w; /* default: pick first item */
       simpreduce(RIGHT, &f, &l, a);
       if (f <= l) {
-	partsort(a, f, l, 0, SORTALL); a->lsort = l;
-	pt = a->t->p; wt = a->t->w;
+  partsort(a, f, l, 0, SORTALL); a->lsort = l;
+  pt = a->t->p; wt = a->t->w;
       }
     }
   } else {
@@ -472,7 +477,7 @@ void reduceset(allinfo *a)
 
 
 /* ======================================================================
-				  initfirst
+          initfirst
    ====================================================================== */
 
 void initfirst(allinfo *a, stype ps, stype ws)
@@ -493,7 +498,7 @@ void initfirst(allinfo *a, stype ps, stype ws)
 
 
 /* ======================================================================
-				  initvect
+          initvect
    ====================================================================== */
 
 void initvect(allinfo *a)
@@ -505,14 +510,14 @@ void initvect(allinfo *a)
 
 
 /* ======================================================================
-				  copyproblem
+          copyproblem
    ====================================================================== */
 
 void copyproblem(item *f, item *l, double *p, double *w, int *x)
 {
   register item *i, *m;
+  register double *pp, *ww;
   register int *xx;
-  register double *ww,*pp;
 
   for (i = f, m = l+1, pp = p, ww = w, xx = x; i != m; i++, pp++, ww++, xx++) {
     i->p = *pp; i->w = *ww; i->x = xx; 
@@ -521,20 +526,20 @@ void copyproblem(item *f, item *l, double *p, double *w, int *x)
 
 
 /* ======================================================================
-				findbreak
+        findbreak
    ====================================================================== */
 
 void findbreak(allinfo *a)
 {
   register item *i, *m;
   register stype psum, wsum, c, r;
-  printf("CRUX BA\n");
+
   psum = 0; wsum = 0; c = a->cstar;
   for (i = a->fitem; wsum <= c; i++) { 
     *(i->x) = 1; psum += i->p; wsum += i->w; 
   }
   i--; psum -= i->p; wsum -= i->w; /* we went one item too far */
-  printf("CARA BA\n");
+
   a->fsort   = a->fpart;
   a->lsort   = a->lpart;
   a->ftouch  = a->fpart;
@@ -543,7 +548,7 @@ void findbreak(allinfo *a)
   a->psumb   = psum;
   a->wsumb   = wsum;
   a->dantzig = psum + ((c - wsum) * (ptype) i->p) / i->w;
-  
+ 
   /* find greedy solution */ 
   r = c - wsum;
   for (i = a->b, m = a->litem; i <= m; i++) {
@@ -557,7 +562,7 @@ void findbreak(allinfo *a)
 
 
 /* ======================================================================
-				minknap
+        minknap
    ====================================================================== */
 
 stype minknap(int n, double *p, double *w, int *x, double c)
@@ -569,9 +574,7 @@ stype minknap(int n, double *p, double *w, int *x, double c)
   /* allocate space for internal representation */
   tab = (item *) palloc(sizeof(item) * n);
   a.fitem = &tab[0]; a.litem = &tab[n-1];
-  
   copyproblem(a.fitem, a.litem, p, w, x);
-  
   a.n           = n;
   a.cstar       = c;
 
@@ -586,14 +589,11 @@ stype minknap(int n, double *p, double *w, int *x, double c)
   a.intv1 = a.intv1b = &inttab[0];
   a.intv2 = a.intv2b = &inttab[SORTSTACK - 1];
   a.fsort = a.litem; a.lsort = a.fitem;
-  printf("OIOIO\n");
   partsort(&a, a.fitem, a.litem, 0, PARTIATE);
-  printf("AIAIAIA\n");
   findbreak(&a);
-  printf("UIUIUIUI\n");
+
   a.ub        = a.dantzig;
   a.firsttime = TRUE;
-
   for (;;) {
     a.iterates++;
 
@@ -605,18 +605,29 @@ stype minknap(int n, double *p, double *w, int *x, double c)
 
     while ((a.d.size > 0) && (a.z < a.ub)) {
       if (a.t <= a.lsort) {
-	if (haschance(&a, a.t, RIGHT)) multiply(&a, a.t, RIGHT);
-	(a.t)++;
+        
+        if (haschance(&a, a.t, RIGHT)){
+          multiply(&a, a.t, RIGHT);
+        }
+        
+        (a.t)++;
       }
+      
       reduceset(&a);
+      
       if (a.s >= a.fsort) {
-	if (haschance(&a, a.s, LEFT)) multiply(&a, a.s, LEFT);
-	(a.s)--;
+        
+        if (haschance(&a, a.s, LEFT)){
+          multiply(&a, a.s, LEFT);
+        }
+        (a.s)--;
       }
-      reduceset(&a);
-    }
-    pfree(a.d.set1);
 
+      reduceset(&a);      
+    }
+    
+    pfree(a.d.set1);
+    
     definesolution(&a);
     if (a.welldef) break;
   }
@@ -625,7 +636,7 @@ stype minknap(int n, double *p, double *w, int *x, double c)
   return a.zstar;
 }
 
-/* ======================================================================
-				end
-   ====================================================================== */
 
+/* ======================================================================
+        end
+   ====================================================================== */

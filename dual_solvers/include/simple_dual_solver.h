@@ -18,8 +18,8 @@ private:
     vector<benefit_cost_pair> _primal_bc;
     vector<benefit_cost_pair> _lagrangean_bc;
 
-    RestrictionLine _primal_backpack_restriction;
-    RestrictionLine get_backpack_restriction(Formulation& f);
+    ConstraintLine _primal_backpack_restriction;
+    ConstraintLine get_backpack_restriction(Formulation& f);
 
     /*Implemented virtual functions*/
     solution_pair find_primal_solution();

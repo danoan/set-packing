@@ -6,7 +6,7 @@
 #include <sstream>
 #include "constants.h"
 #include "types.h"
-#include "restriction_line.h"
+#include "constraint_line.h"
 
 using namespace std;
 
@@ -15,11 +15,11 @@ private:
     void copy_formulation(Formulation& p_f);
 
 protected:
-    vector< RestrictionLine* > _restrictions;
+    vector< ConstraintLine* > _constraints;
     vector<double> _c;
     int _objective_type;
 
-    bool check_restriction(RestrictionLine& rl,vector<double>& x);
+    bool check_constraint(ConstraintLine& rl,vector<double>& x);
 
 public:
     Formulation(){};
@@ -31,17 +31,17 @@ public:
 
     Formulation(Formulation& f);
 
-    inline vector< RestrictionLine* >::iterator begin(){ return _restrictions.begin(); };
-    inline vector< RestrictionLine* >::iterator end(){ return _restrictions.end(); };    
+    inline vector< ConstraintLine* >::iterator begin(){ return _constraints.begin(); };
+    inline vector< ConstraintLine* >::iterator end(){ return _constraints.end(); };    
 
-    inline int num_restrictions(){return _restrictions.size();};
+    inline int num_constraints(){return _constraints.size();};
 
     inline vector<double>& c(){ return _c; };    
 
     inline int objective_type(){ return _objective_type; };
 
     virtual double compute(vector<double> p_x);    
-    virtual bool check_restrictions(vector<double> p_x);    
+    virtual bool check_constraints(vector<double> p_x);    
 
     string to_str();
 };

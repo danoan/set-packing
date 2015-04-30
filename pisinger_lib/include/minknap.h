@@ -1,4 +1,3 @@
-
 /* ======================================================================
            MINKNAP.C, David Pisinger   march 1993, revised feb. 1998
    ====================================================================== */
@@ -58,7 +57,8 @@
  *   e-mail: pisinger@diku.dk
  *   fax: +45 35 32 14 01
  */
- 
+
+
 /* ======================================================================
                                   definitions
    ====================================================================== */
@@ -76,7 +76,7 @@
 
 
 /* ======================================================================
-                   macros
+           macros
    ====================================================================== */
 
 #define SYNC            5      /* when to switch to linear scan in bins */
@@ -108,13 +108,13 @@
 
 
 /* ======================================================================
-                 type declarations
+         type declarations
    ====================================================================== */
 
 typedef int           boolean;
 typedef long          ntype;   /* number of states/items   */
-typedef double        itype;   /* item profits and weights */
-typedef double        stype;   /* sum of pofit or weight   */
+typedef double          itype;   /* item profits and weights */
+typedef double          stype;   /* sum of pofit or weight   */
 typedef double        ptype;   /* product type (sufficient precision) */
 typedef unsigned long btype;   /* binary representation of solution */
 

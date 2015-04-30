@@ -62,7 +62,7 @@ double objective_function(solution_pair s){
 
 //xj = 1 means the subset j is being used on the solution
 //If one element appears more than once on the subsets used, the solution is not valid
-bool check_restrictions(solution_pair s,int** sets,int num_elements,int num_sets){
+bool check_constraints(solution_pair s,int** sets,int num_elements,int num_sets){
     int* elements_used = (int*) calloc(num_elements,sizeof(int));
     if(elements_used==NULL) exit(1);
 
@@ -118,7 +118,7 @@ vector<solution_pair> get_optimal_solution(vector<solution_pair> all, int** sets
 
     double v;
     for(int i=0;i<all.size();i++){
-        if(check_restrictions(all[i],sets,num_elements,num_sets)==false) continue;
+        if(check_constraints(all[i],sets,num_elements,num_sets)==false) continue;
         all[i].vx = objective_function(all[i]);
         if(all[i].vx>max){
             max=all[i].vx;
@@ -126,7 +126,7 @@ vector<solution_pair> get_optimal_solution(vector<solution_pair> all, int** sets
     }
 
     for(int i=0;i<all.size();i++){    
-        if(check_restrictions(all[i],sets,num_elements,num_sets)==false) continue;
+        if(check_constraints(all[i],sets,num_elements,num_sets)==false) continue;
         if(all[i].vx==max){
             max_solutions.push_back(all[i]);
         }
@@ -142,14 +142,14 @@ void create_input(int** sets, int num_elements, int num_sets, solution_pair opti
 
     sprintf(name,"%d_elem_%d_sets_sol_%d_version_%d",num_elements,num_sets,(int)(optimal_solution.vx),version);
     
-    total_written += sprintf( (buffer+total_written),"%d\n%d\nmax\n",num_elements,num_sets); //num_restrictions,num_variables
+    total_written += sprintf( (buffer+total_written),"%d\n%d\nmax\n",num_elements,num_sets); //num_constraints,num_variables
     for(int j=0;j<num_sets;j++){
         total_written += sprintf( (buffer+total_written),"+1x%d ",j+1);
     }
     total_written += sprintf( (buffer+total_written),"\n");
 
     bool has_at_least_one;
-    int total_restrictions=0;
+    int total_constraints=0;
     for(int i=0;i<num_elements;i++){
         has_at_least_one=false;
         for(int j=0;j<num_sets;j++){
@@ -159,13 +159,13 @@ void create_input(int** sets, int num_elements, int num_sets, solution_pair opti
             }
         }
         if(has_at_least_one){
-            total_restrictions+=1;
+            total_constraints+=1;
             total_written += sprintf( (buffer+total_written)," <= 1\n");
         }      
     }
     
     //update restrictions
-    total_written = sprintf( buffer,"%d\n%d\nmax",total_restrictions,num_sets); //num_restrictions,num_variables
+    total_written = sprintf( buffer,"%d\n%d\nmax",total_constraints,num_sets); //num_constraints,num_variables
     buffer[total_written]='\n';
 
     FILE* f = fopen(name,"w");

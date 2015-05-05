@@ -125,11 +125,10 @@ void definesolution(allinfo *a)
   f    = a->fsort - 1;
   l    = a->lsort + 1;
 
-  
   for (j = 0; j < MAXV; j++) {
     k = a->ovect & ((btype) 1 << j);
     i = a->ovitem[j]; if (i == NULL) continue;
-    printf("%d\n",*(i->x));
+
     if (*(i->x) == 1) {
       if (i > f) f = i;
       if (k) { psum += i->p; wsum += i->w; *(i->x) = 0; }
@@ -590,7 +589,7 @@ stype minknap(int n, double *p, double *w, int *x, double c)
   a.intv2 = a.intv2b = &inttab[SORTSTACK - 1];
   a.fsort = a.litem; a.lsort = a.fitem;
   partsort(&a, a.fitem, a.litem, 0, PARTIATE);
-  findbreak(&a);
+  findbreak(&a);  
 
   a.ub        = a.dantzig;
   a.firsttime = TRUE;
@@ -602,8 +601,9 @@ stype minknap(int n, double *p, double *w, int *x, double c)
     initfirst(&a, a.psumb, a.wsumb);
     initvect(&a);
     reduceset(&a);
-
+    
     while ((a.d.size > 0) && (a.z < a.ub)) {
+
       if (a.t <= a.lsort) {
         
         if (haschance(&a, a.t, RIGHT)){
@@ -625,7 +625,7 @@ stype minknap(int n, double *p, double *w, int *x, double c)
 
       reduceset(&a);      
     }
-    
+
     pfree(a.d.set1);
     
     definesolution(&a);

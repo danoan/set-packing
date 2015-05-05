@@ -63,7 +63,7 @@ int read_input(vector< vector<double> >& A, vector<double>& b, vector<double>& c
         c[xj-1] = cj;
         total_read+=chars_read;
     }
-
+    printf("AKAIAKI\n");
     for(int i=0;i<n;i++){
         memset(line,'\0',sizeof(char)*1024);
         memset(op_str,'\0',sizeof(char)*2);

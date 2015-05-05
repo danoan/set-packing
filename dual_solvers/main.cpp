@@ -14,20 +14,7 @@
 
 bool DEBUG = true;
 
-Formulation short_input(){
-    int objective_type;
-    vector< vector<double> > A_cost;
-    vector<double> b;
-    vector<double> c;
-    vector<int> op;
-
-    read_input(A_cost,b,c,op,objective_type);
-    Formulation f(A_cost,b,c,op,objective_type);
-
-    return f;
-}
-
-Formulation long_input(){
+Formulation short_input(){        
     int objective_type;
     vector< vector<int> > A_index;
     vector< vector<double> > A_cost;
@@ -41,13 +28,26 @@ Formulation long_input(){
     return f;
 }
 
+Formulation long_input(){
+    int objective_type;
+    vector< vector<double> > A_cost;
+    vector<double> b;
+    vector<double> c;
+    vector<int> op;
+
+    read_input(A_cost,b,c,op,objective_type);
+    Formulation f(A_cost,b,c,op,objective_type);
+
+    return f;
+}
+
 void single_input(char input_type, int max_N, char solver){
 
     Formulation f;
 
-    if(input_type==LONG_TYPE_INPUT){
+    if(input_type==SHORT_TYPE_INPUT){
         f = short_input();
-    }else if(input_type==SHORT_TYPE_INPUT){
+    }else if(input_type==LONG_TYPE_INPUT){
         f = long_input();        
     }else{
         printf("You should specify a valid input type\n");

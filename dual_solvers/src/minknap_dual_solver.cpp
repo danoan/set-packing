@@ -135,13 +135,13 @@ solution_pair MinknapDualSolver::find_dual_solution(vector<double>& lbda){
         int m = Ix.size();
         double n = (double) active_constraints_for_vars(Ix);
 
-        double* costs = (double*) malloc(sizeof(double)*m);
+        double* costs = new double[m];
         for(int i=0;i<m;i++){
             costs[i] = _lf.lagrangean_costs()[ Ix[i] ];
         }
 
         
-        double* weights = (double*) malloc(sizeof(double)*m);
+        double* weights = new double[m];
         double sum_w=0;
         for(int i=0;i<m;i++){
             weights[i] = _lf.times_var_appears(Ix[i]);
@@ -149,7 +149,7 @@ solution_pair MinknapDualSolver::find_dual_solution(vector<double>& lbda){
         }        
 
         solution_pair d2;                
-        int* x_line = (int*) malloc(sizeof(int)*Ix.size());
+        int* x_line = new int[m];
 
         //If the sum of the weights are lesser than the kanpsack contraint threshold, the optimal solution is
         //to set all variables to 1
@@ -163,8 +163,8 @@ solution_pair MinknapDualSolver::find_dual_solution(vector<double>& lbda){
 
 
         int j=0;
-        for(int i=0;i<_lf.lagrangean_costs().size();i++){
-            if(Ix[j]!=i){
+        for(int i=0;i<_lf.lagrangean_costs().size();i++){            
+            if(j>=m or Ix[j]!=i){
                 d.x.push_back(0.0);
             }else{
                 d.x.push_back( (double) x_line[j++]);
@@ -172,9 +172,9 @@ solution_pair MinknapDualSolver::find_dual_solution(vector<double>& lbda){
         }
         d.vx = _lf.compute(d.x);    
 
-        free(costs);
-        free(weights);
-        free(x_line);
+        delete[] costs;
+        delete[] weights;
+        delete[] x_line;
 
     }else{       
         d = find_int_solution_by_lagrangean_heuristic(_lf);

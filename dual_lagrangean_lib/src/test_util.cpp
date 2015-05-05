@@ -83,6 +83,7 @@ void values_test(vector< vector<int> >& A_index, int ex_A_index[m][n],
 }
 
 void test_single_success(){
+    printf("****SINGLE SUCCESS****\n");
     FILE* f = load_file("input_util_1");
 
     vector< vector<double> > A;
@@ -104,6 +105,7 @@ void test_single_success(){
 }
 
 void test_stress_success(){
+    printf("****STRESS SUCCESS****\n");
     FILE* f = load_file("input_util_2");
     vector< vector<double> > A;
     vector<double> b;
@@ -168,6 +170,7 @@ void test_number_of_variables_greater_than_indicated(){
 
 
 void test_high_stress_success(){
+    printf("****HIGH STRESS SUCCESS****\n");
     FILE* f = load_file("input_util_9");
     vector< vector<double> > A;
     vector<double> b;
@@ -222,6 +225,7 @@ void test_high_stress_success(){
 }
 
 void test_set_packing_read(){
+    printf("****SET PACKING READ SUCCESS****\n");
     FILE* f = load_file("input_util_10");
     vector< vector<int> > A_index;
     vector< vector<double> > A_cost;

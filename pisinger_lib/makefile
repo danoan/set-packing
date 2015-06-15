@@ -7,12 +7,19 @@ object_path=$(build)/object
 lib_path=$(build)/lib
 bin_path=$(build)/bin
 
-source_path=src
-header_path=include
+source_path=original/src
+header_path=original/include
+
+
+CCFLAGS = -O3 -w
+
 
 all: lib main.out
 
-lib: clear check minknap.o pisinger.o
+debug: CCFLAGS = -g -w
+debug: all
+
+lib: check minknap.o pisinger.o
 	ar rc $(lib_path)/libpisinger.a  $(object_path)/minknap.o $(object_path)/pisinger.o
 
 check:
@@ -23,13 +30,13 @@ check:
 	test -d $(lib_path) || mkdir $(lib_path)
 
 minknap.o:
-	gcc -I$(header_path) -o $(object_path)/minknap.o -c $(source_path)/minknap.c
+	gcc -I$(header_path) -o $(object_path)/minknap.o -c $(source_path)/minknap.c $(CCFLAGS)
 
 pisinger.o:
-	g++ -I$(header_path) -o $(object_path)/pisinger.o -c $(source_path)/pisinger.cpp
+	g++ -I$(header_path) -o $(object_path)/pisinger.o -c $(source_path)/pisinger.cpp $(CCFLAGS)
 
 main.out:
-	g++ -I$(header_path) -o $(bin_path)/main.out $(source_path)/main.cpp -L$(lib_path) -lpisinger
+	g++ -I$(header_path) -o $(bin_path)/main.out $(source_path)/main.cpp -L$(lib_path) -lpisinger $(CCFLAGS)
 
 clear:
 	rm -f -r $(build)/*

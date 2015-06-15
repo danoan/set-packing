@@ -11,7 +11,7 @@
 #include <unistd.h>
 
 
-#include "util.h"
+#include "io.h"
 #include "formulation.h"
 #include "lagrangean_formulation.h"
 #include "simple_dual_solver.h"
@@ -172,8 +172,11 @@ void solve(int max_N, FILE* file, const string filename){
     bool mink_better = (s_simp.d.vx - s_simp.p.vx) > (s_mink.d.vx - s_mink.p.vx);
     double gap_diff = (s_mink.d.vx - s_mink.p.vx) - (s_simp.d.vx - s_simp.p.vx);
         
-    printf("SIMPLE: \tPRIMAL: %.5lf \tDUAL:%.5lf\t BEST VALUE KNOWN: %.5lf\t %s (%d.%d)\n",s_simp.p.vx, s_simp.d.vx,OPT_VALUES[filename], check_simp?"OK":"SOMETHING WRONG",simple_timer_end.tv_sec,simple_timer_end.tv_usec);
-    printf("MINKNAP:\tPRIMAL: %.5lf \tDUAL:%.5lf\t BEST VALUE KNOWN: %.5lf\t %s - %s (%.5lf) (%d.%d)\n",s_mink.p.vx, s_mink.d.vx,OPT_VALUES[filename], check_mink?"OK":"SOMETHING WRONG", mink_better?"BETTER":"WORST", gap_diff,mink_timer_end.tv_sec,mink_timer_end.tv_usec);
+    // printf("SIMPLE: \tPRIMAL: %.5lf \tDUAL:%.5lf\t BEST VALUE KNOWN: %.5lf\t %s (%d.%d)\n",s_simp.p.vx, s_simp.d.vx,OPT_VALUES[filename], check_simp?"OK":"SOMETHING WRONG",simple_timer_end.tv_sec,simple_timer_end.tv_usec);
+    // printf("MINKNAP:\tPRIMAL: %.5lf \tDUAL:%.5lf\t BEST VALUE KNOWN: %.5lf\t %s - %s (%.5lf) (%d.%d)\n",s_mink.p.vx, s_mink.d.vx,OPT_VALUES[filename], check_mink?"OK":"SOMETHING WRONG", mink_better?"BETTER":"WORST", gap_diff,mink_timer_end.tv_sec,mink_timer_end.tv_usec);
+
+    printf("SIMPLE: \tPRIMAL: %.5lf \tDUAL:%.5lf\t BEST VALUE KNOWN: %.5lf\t %s\n",s_simp.p.vx, s_simp.d.vx,OPT_VALUES[filename], check_simp?"OK":"SOMETHING WRONG");
+    printf("MINKNAP:\tPRIMAL: %.5lf \tDUAL:%.5lf\t BEST VALUE KNOWN: %.5lf\t %s - %s (%.5lf)\n",s_mink.p.vx, s_mink.d.vx,OPT_VALUES[filename], check_mink?"OK":"SOMETHING WRONG", mink_better?"BETTER":"WORST", gap_diff);    
 }
 
 bool is_regular_file(const char* filepath){

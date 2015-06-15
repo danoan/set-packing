@@ -8,7 +8,7 @@
 using namespace std;
 
 #include "types.h"
-#include "util.h"
+#include "io.h"
 #include "formulation.h"
 #include "lagrangean_formulation.h"
 

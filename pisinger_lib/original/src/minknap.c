@@ -128,18 +128,14 @@ void definesolution(allinfo *a)
   for (j = 0; j < MAXV; j++) {
     k = a->ovect & ((btype) 1 << j);
     i = a->ovitem[j]; if (i == NULL) continue;
-
     if (*(i->x) == 1) {
       if (i > f) f = i;
       if (k) { psum += i->p; wsum += i->w; *(i->x) = 0; }
-          
     } else {
-            
       if (i < l) l = i;
       if (k) { psum -= i->p; wsum -= i->w; *(i->x) = 1; }
     }
   }
-  
   a->welldef = (psum == a->psumb) && (wsum == a->wsumb);
 
   /* prepare for next round */
@@ -504,7 +500,6 @@ void initvect(allinfo *a)
 {
   register btype i;
   for (i = 0; i < MAXV; i++) a->vitem[i] = NULL;
-    for (i = 0; i < MAXV; i++) a->ovitem[i] = NULL;
   a->vno = MAXV-1;
 }
 
@@ -513,11 +508,11 @@ void initvect(allinfo *a)
           copyproblem
    ====================================================================== */
 
-void copyproblem(item *f, item *l, double *p, double *w, int *x)
+void copyproblem(item *f, item *l, long *p, int *w, int *x)
 {
   register item *i, *m;
-  register double *pp, *ww;
-  register int *xx;
+  register int *ww, *xx;
+  register long *pp;
 
   for (i = f, m = l+1, pp = p, ww = w, xx = x; i != m; i++, pp++, ww++, xx++) {
     i->p = *pp; i->w = *ww; i->x = xx; 
@@ -565,7 +560,7 @@ void findbreak(allinfo *a)
         minknap
    ====================================================================== */
 
-stype minknap(int n, double *p, double *w, int *x, double c)
+stype minknap(int n, long *p, int *w, int *x, int c)
 {
   allinfo a;
   item *tab;
@@ -590,10 +585,11 @@ stype minknap(int n, double *p, double *w, int *x, double c)
   a.intv2 = a.intv2b = &inttab[SORTSTACK - 1];
   a.fsort = a.litem; a.lsort = a.fitem;
   partsort(&a, a.fitem, a.litem, 0, PARTIATE);
-  findbreak(&a);  
+  findbreak(&a);
 
   a.ub        = a.dantzig;
   a.firsttime = TRUE;
+
   for (;;) {
     a.iterates++;
 
@@ -602,33 +598,21 @@ stype minknap(int n, double *p, double *w, int *x, double c)
     initfirst(&a, a.psumb, a.wsumb);
     initvect(&a);
     reduceset(&a);
-    
+
     while ((a.d.size > 0) && (a.z < a.ub)) {
-
       if (a.t <= a.lsort) {
-        
-        if (haschance(&a, a.t, RIGHT)){
-          multiply(&a, a.t, RIGHT);
-        }
-        
-        (a.t)++;
+  if (haschance(&a, a.t, RIGHT)) multiply(&a, a.t, RIGHT);
+  (a.t)++;
       }
-      
       reduceset(&a);
-      
       if (a.s >= a.fsort) {
-        
-        if (haschance(&a, a.s, LEFT)){
-          multiply(&a, a.s, LEFT);
-        }
-        (a.s)--;
+  if (haschance(&a, a.s, LEFT)) multiply(&a, a.s, LEFT);
+  (a.s)--;
       }
-
-      reduceset(&a);      
+      reduceset(&a);
     }
-
     pfree(a.d.set1);
-    
+
     definesolution(&a);
     if (a.welldef) break;
   }

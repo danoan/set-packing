@@ -11,6 +11,7 @@
 #include "subgradient_method.h"
 #include "pisinger.h"
 #include "real_to_int.h"
+#include "io.h"
 #include "util.h"
 
 extern bool DEBUG;

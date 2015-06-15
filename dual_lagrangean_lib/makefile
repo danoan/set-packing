@@ -18,12 +18,19 @@ gtest_header_path=../gtest-1.7.0/include
 mkfile_path = $(abspath $(lastword $(MAKEFILE_LIST)))
 current_dir = $(dir $(mkfile_path))
 
+CCFLAGS = -O3 -w
 
-lib: clear check formulation.o heuristics.o lagrangean_formulation.o dual_lagrangean_method.o util.o subgradient_method.o constraint_line.o
+all: lib
+
+debug: CCFLAGS = -g -w
+debug: lib
+
+lib: check formulation.o heuristics.o lagrangean_formulation.o dual_lagrangean_method.o util.o subgradient_method.o constraint_line.o io.o
 	ar rc $(lib_path)/libpack.a $(object_path)/*.o
 
 test: lib
-	g++ -I $(header_path) -I $(gtest_header_path)  $(source_path)/test_util.cpp -o $(bin_path)/test_util.out -D ROOT_PATH="\"$(current_dir)\"" -pthread -L$(lib_path) -lpack -lgtest -O3 -w
+	g++ -I $(header_path) -I $(gtest_header_path)  $(source_path)/test_io.cpp -o $(bin_path)/test_io.out -D ROOT_PATH="\"$(current_dir)\"" -pthread -L$(lib_path) -lpack -Lext_lib -lgtest $(CCFLAGS)
+	g++ -I $(header_path) $(source_path)/test_util.cpp -o $(bin_path)/test_util.out -D ROOT_PATH="\"$(current_dir)\"" -L$(lib_path) -lpack  $(CCFLAGS)
 
 clear:
 	rm -r -f $(build)/*
@@ -36,22 +43,25 @@ check:
 	test -d $(lib_path) || mkdir $(lib_path)
 
 formulation.o: check
-	g++ -I $(header_path) -o $(object_path)/formulation.o -c $(source_path)/formulation.cpp -O3 -w
+	g++ -I $(header_path) -o $(object_path)/formulation.o -c $(source_path)/formulation.cpp $(CCFLAGS)
 
 heuristics.o: check
-	g++ -I $(header_path) -o $(object_path)/heuristics.o -c $(source_path)/heuristics.cpp -O3 -w
+	g++ -I $(header_path) -o $(object_path)/heuristics.o -c $(source_path)/heuristics.cpp $(CCFLAGS)
 
 lagrangean_formulation.o: check
-	g++ -I $(header_path) -o $(object_path)/lagrangean_formulation.o -c $(source_path)/lagrangean_formulation.cpp -O3 -w
+	g++ -I $(header_path) -o $(object_path)/lagrangean_formulation.o -c $(source_path)/lagrangean_formulation.cpp $(CCFLAGS)
 
 dual_lagrangean_method.o: check
-	g++ -I $(header_path) -o $(object_path)/dual_lagrangean_method.o -c $(source_path)/dual_lagrangean_method.cpp -O3 -w	
+	g++ -I $(header_path) -o $(object_path)/dual_lagrangean_method.o -c $(source_path)/dual_lagrangean_method.cpp $(CCFLAGS)
 
 subgradient_method.o: check
-	g++ -I $(header_path) -o $(object_path)/subgradient_method.o -c $(source_path)/subgradient_method.cpp -O3 -w	
+	g++ -I $(header_path) -o $(object_path)/subgradient_method.o -c $(source_path)/subgradient_method.cpp $(CCFLAGS)
 
 constraint_line.o: check
-	g++ -I $(header_path) -o $(object_path)/constraint_line.o -c $(source_path)/constraint_line.cpp -O3 -w
+	g++ -I $(header_path) -o $(object_path)/constraint_line.o -c $(source_path)/constraint_line.cpp $(CCFLAGS)
+
+io.o: check
+	g++ -I $(header_path) -o $(object_path)/io.o -c $(source_path)/io.cpp $(CCFLAGS)
 
 util.o: check
-	g++ -I $(header_path) -o $(object_path)/util.o -c $(source_path)/util.cpp -O3 -w
+	g++ -I $(header_path) -o $(object_path)/util.o -c $(source_path)/util.cpp $(CCFLAGS)

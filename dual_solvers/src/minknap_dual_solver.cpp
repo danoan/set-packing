@@ -119,6 +119,8 @@ int MinknapDualSolver::active_constraints_for_vars(vector<int>& Ix){
 solution_pair MinknapDualSolver::find_dual_solution(vector<double>& lbda){
     _lf.lbda(lbda);    
     
+    int lift_factor = 1000;
+    long value;
     solution_pair d;
     vector<int> Ix;
 
@@ -133,43 +135,71 @@ solution_pair MinknapDualSolver::find_dual_solution(vector<double>& lbda){
     //If there are more than 0 of such variables, prepare the correspondent knapsack constraint
     if( Ix.size()>0 ){
         int m = Ix.size();
-        double n = (double) active_constraints_for_vars(Ix);
+        int n = active_constraints_for_vars(Ix);
 
-        double* costs = new double[m];
+        
+        long* costs = new long int[m];
         for(int i=0;i<m;i++){
-            costs[i] = _lf.lagrangean_costs()[ Ix[i] ];
+            costs[i] = (long) ceil(_lf.lagrangean_costs()[ Ix[i] ]*lift_factor);
         }
 
         
-        double* weights = new double[m];
-        double sum_w=0;
+        int* weights = new int[m];   
+        int sum_w=0;
         for(int i=0;i<m;i++){
             weights[i] = _lf.times_var_appears(Ix[i]);
             sum_w+=weights[i];
         }        
 
-        solution_pair d2;                
+        // solution_pair d_knap;                
         int* x_line = new int[m];
 
         //If the sum of the weights are lesser than the kanpsack contraint threshold, the optimal solution is
         //to set all variables to 1
+        int j;
         if(sum_w<=n){
             for(int i=0;i<m;i++){
                 x_line[i]=1;
             }
         }else{
-            minknap(m,costs,weights,x_line,n); 
+            
+            // for(int i=0;i<m;i++){
+            //     x_line[i]=0;
+            // }            
+            
+            // value = knapsack(costs,weights,n,m,1,x_line);
+
+            // j=0;
+            // for(int i=0;i<_lf.lagrangean_costs().size();i++){            
+            //     if(j>=m or Ix[j]!=i){
+            //         d_knap.x.push_back(0.0);
+            //     }else{
+            //         d_knap.x.push_back( (double) x_line[j++]);
+            //     }
+            // }   
+
+
+            for(int i=0;i<m;i++){
+                x_line[i]=0;
+            }            
+
+            minknap(m,costs,weights,x_line,n);                           
         }
 
-
-        int j=0;
+        j=0;
         for(int i=0;i<_lf.lagrangean_costs().size();i++){            
             if(j>=m or Ix[j]!=i){
                 d.x.push_back(0.0);
             }else{
                 d.x.push_back( (double) x_line[j++]);
             }
-        }
+        }                 
+
+
+        // if(d_knap.x.size()!=0)
+        //     printf("VALUE KNAP: %.2f\n",_lf.compute(d_knap.x));
+
+        // printf("VALUE MINKNAP: %.2f\n",_lf.compute(d.x));        
         d.vx = _lf.compute(d.x);    
 
         delete[] costs;

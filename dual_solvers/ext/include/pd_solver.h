@@ -1,11 +1,10 @@
-#ifndef __UTIL__
-#define __UTIL__
-
-#include <stdlib.h>
+#ifndef __PD_SOLVER__
+#define __PD_SOLVER__
 
 #include "formulation.h"
 #include "constraint_line.h"
 #include "io.h"
+
 
 double knapsack(Formulation& f,int* x);
 ConstraintLine* get_knapsack_constraint(Formulation& f);
@@ -36,7 +35,6 @@ T knapsack(T* c, int* a, const int b, const int n, const int m, int* x){
     }
 
     for(int i=1;i<n+1;i++){
-        x[i-1] = 0;
         for(int j=1;j<b+1;j++){
             if( a[i-1] > j ){
                 pd[i][j] = pd[i-1][j];

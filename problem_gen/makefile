@@ -16,7 +16,7 @@ bin_path=$(build)/$(bin)
 header_dual_lib=../dual_lagrangean_lib/include
 lib_dual_lib=../dual_lagrangean_lib/build/lib
 
-main: clear check
+main: check
 	g++ -I $(header_path) -I $(header_dual_lib) problem_gen.cpp -o $(bin_path)/problem_gen.out -L$(lib_dual_lib) -lpack -O3 -w
 
 check:

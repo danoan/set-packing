@@ -5,7 +5,7 @@
 
 #include "lagrangean_formulation.h"
 #include "types.h"
-#include "util.h"
+#include "io.h"
 
 class SubgradientMethod{
 private:

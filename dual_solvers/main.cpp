@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <ctime>
 
-#include "util.h"
+#include "io.h"
 #include "formulation.h"
 #include "lagrangean_formulation.h"
 #include "simple_dual_solver.h"

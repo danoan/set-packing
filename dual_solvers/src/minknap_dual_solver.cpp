@@ -1,6 +1,6 @@
 #include "minknap_dual_solver.h"
 
-MinknapDualSolver::MinknapDualSolver(Formulation& p_f){
+MinknapDualSolver::MinknapDualSolver(Formulation& p_f, bool p_debug):_debug(p_debug){
     ConstraintLine* _primal_knapsack_restriction = get_knapsack_constraint(p_f);      
 
     _f = Formulation(p_f);
@@ -10,7 +10,7 @@ MinknapDualSolver::MinknapDualSolver(Formulation& p_f){
     _lagrangean_kc = compute_benefit_cost(*_primal_knapsack_restriction,_lf.lagrangean_costs());    
 }
 
-dual_lagrangean_solution MinknapDualSolver::solve(int max_N){
+dual_lagrangean_solution MinknapDualSolver::solve(int p_max_N, double p_pi_factor, double p_max_no_improvement){
     vector<double> lbda;
     for(int i=0;i<_f.num_constraints();i++){
         lbda.push_back(1);
@@ -19,9 +19,9 @@ dual_lagrangean_solution MinknapDualSolver::solve(int max_N){
     solution_pair p = find_primal_solution();    
     solution_pair d = find_dual_solution(lbda);
 
-    if(DEBUG) log_start(_f,_lf,lbda,p,d);    
+    if(_debug) log_start(_f,_lf,lbda,p,d);    
 
-    solve_lagrangean_subproblem(_f,_lf,p,d,lbda,max_N);    
+    solve_lagrangean_subproblem(_f,_lf,p,d,lbda,p_max_N, p_pi_factor, p_max_no_improvement);    
 
     dual_lagrangean_solution s;
     s.p = p;
@@ -67,14 +67,14 @@ ConstraintLine* MinknapDualSolver::get_knapsack_constraint(Formulation& f){
 }
 
 solution_pair MinknapDualSolver::find_primal_solution(){
-    solution_pair s = find_int_solution_by_benefit_cost_heuristic(_f, _primal_kc);
+    solution_pair s = find_primal_int_solution_by_benefit_cost_heuristic(_f, _primal_kc);
     s.vx = _f.compute(s.x);
 
     return s;
 }
 
 solution_pair MinknapDualSolver::update_primal(solution_pair& p, solution_pair& d){
-    solution_pair s = find_int_feasible_solution_from_dual(d,_f,_primal_kc);
+    solution_pair s = find_primal_int_feasible_solution_from_dual(d,_f,_primal_kc);
     s.vx = _f.compute(s.x);        
 
     if(_f.objective_type()==MAX_TYPE){
@@ -207,16 +207,16 @@ solution_pair MinknapDualSolver::find_dual_solution(vector<double>& lbda){
         delete[] x_line;
 
     }else{       
-        d = find_int_solution_by_lagrangean_heuristic(_lf);
+        d = find_int_optimal_solution_lagrangean_subproblem(_lf);
     }
     
     return d;
 }
 
 solution_pair MinknapDualSolver::solve_lagrangean_subproblem(Formulation& f, LagrangeanFormulation& lf, solution_pair& p,
-                                  solution_pair& d, vector<double>& lbda, int max_N){
+                                  solution_pair& d, vector<double>& lbda, int p_max_N, double p_pi_factor, double p_max_no_improvement){
     solution_pair d_prime;   
-    SubgradientMethod sm(lf,max_N,DEBUG);
+    SubgradientMethod sm(lf,p_max_N,p_pi_factor,p_max_no_improvement,_debug);
 
     while( sm.next(lbda,lf,p,d) ){
         d_prime = find_dual_solution(lbda);

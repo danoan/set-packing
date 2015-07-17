@@ -184,7 +184,7 @@ int main(int argc, char* argv[]){
     int** sets;
 
     printf("Enter with the number of elements and the number os subsets:\n");
-    scanf("%d %d",&num_elements,&num_sets);
+    (void)(scanf("%d %d",&num_elements,&num_sets)+1);
 
     create_example(num_elements,num_sets,&elements,&sets);
 

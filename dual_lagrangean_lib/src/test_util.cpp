@@ -39,6 +39,10 @@ void example_1(){
         printf("%d ", x[i]);
     }
     printf(")\n");    
+
+    delete[] c;
+    delete[] a;
+    delete[] x;
 }
 
 void example_2(){
@@ -55,7 +59,7 @@ void example_2(){
     int* x = new int[4];
     long value = knapsack(c,a,b,n,m,x);
 
-    printf("SOLUTION: %.4f\n", value);
+    printf("SOLUTION: %.4ld\n", value);
     printf("X=( ");
     for(int i=0;i<n;i++){
         printf("%d ", x[i]);

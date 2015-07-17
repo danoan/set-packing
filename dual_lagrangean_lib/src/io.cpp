@@ -1,10 +1,12 @@
 #include "io.h"
 #include "constants.h"
 
+#define UNUSED(param) do{ (void)param; }while(0);
+
 void jumps_newline(FILE* f){
     //Jumps the white characters and the newline
     int comeback;
-    fscanf(f,"%*d%n",&comeback);
+    (void)(fscanf(f,"%*d%n",&comeback)+1);
     fseek(f,-(comeback-1),SEEK_CUR);    
 }
 
@@ -38,14 +40,14 @@ int read_input(vector< vector<double> >& A, vector<double>& b, vector<double>& c
     char* op_str = (char*) malloc(sizeof(char)*2);
     int size_op_str;
 
-    fscanf(f,"%d %d",&n,&m);    
+    (void)(fscanf(f,"%d %d",&n,&m)+1);    //Just to supress warning
     c.resize(m);
     for(int j=0;j<m;j++){
         c[j] = 0;
     }
     op.resize(n);
     
-    fscanf(f,"%s",type);
+    (void)(fscanf(f,"%s",type)+1);
     if(type[0]=='m' && type[1]=='a' && type[2]=='x'){
         objective_type = MAX_TYPE;
     }else{
@@ -55,7 +57,7 @@ int read_input(vector< vector<double> >& A, vector<double>& b, vector<double>& c
     //Jumps the white characters and the newline
     jumps_newline(f);
 
-    fgets(line,1024,f);
+    (void)(fgets(line,1024,f)+1);
 
     int chars_read;
     int total_read=0;
@@ -63,7 +65,7 @@ int read_input(vector< vector<double> >& A, vector<double>& b, vector<double>& c
         c[xj-1] = cj;
         total_read+=chars_read;
     }
-    printf("AKAIAKI\n");
+
     for(int i=0;i<n;i++){
         memset(line,'\0',sizeof(char)*1024);
         memset(op_str,'\0',sizeof(char)*2);
@@ -74,7 +76,7 @@ int read_input(vector< vector<double> >& A, vector<double>& b, vector<double>& c
             A[i][j] = 0;
         }
 
-        fgets(line,1024,f); //Advances f pointer
+        (void)(fgets(line,1024,f) + 1); //Advances f pointer
         // printf("%s\n",line);
         total_read=0;
         while(sscanf(line+total_read,"%lfx%d%n",&aij,&xj,&chars_read)==2){
@@ -126,10 +128,10 @@ int read_input(vector< vector<int> >& A_index, vector< vector<double> >& A_cost,
     int xj;
     double cj;
 
-    fscanf(f,"%d %d",&n,&m);    
+    (void)(fscanf(f,"%d %d",&n,&m)+1);    
     c.resize(m);
     for(int j=0;j<m;j++){
-        fscanf(f,"%lf",&cj);
+        (void)(fscanf(f,"%lf",&cj)+1);
         c[j] = cj;
     }
 
@@ -141,12 +143,12 @@ int read_input(vector< vector<int> >& A_index, vector< vector<double> >& A_cost,
     objective_type = MAX_TYPE;
 
     for(int i=0;i<n;i++){
-        fscanf(f,"%d",&k);        
+        (void)(fscanf(f,"%d",&k)+1);        
         A_index[i].resize(k);
         A_cost[i].resize(k);
 
         for(int j=0;j<k;j++){
-            fscanf(f,"%d",&var_index);
+            (void)(fscanf(f,"%d",&var_index)+1);
             A_index[i][j] = var_index-1;
             A_cost[i][j] = 1;
         }
@@ -161,7 +163,7 @@ void print_solution(string name, solution_pair& s){
     printf("%s: ", name.c_str());
     printf("(");
     for(int i=0;i<s.x.size();i++){
-        printf("%.2lf ",i,s.x[i]);
+        printf("%.2lf ",s.x[i]);
     }
     printf(") VALUE: %.4lf\n", s.vx);
 }

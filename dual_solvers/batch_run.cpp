@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 
+#include "config.h"
 #include "io.h"
 #include "formulation.h"
 #include "lagrangean_formulation.h"
@@ -19,10 +20,7 @@
 
 #define INPUT_DIR "/home/daniel/Projects/set_packing/code/dual_solvers/input/instances/"
 
-bool DEBUG = false;
 std::map<string,double> OPT_VALUES;
-
-
 struct timeval start_timer(){
     struct timeval timer;
     gettimeofday(&timer,NULL);
@@ -47,8 +45,8 @@ struct timeval end_timer(struct timeval *start){
 }
 
 void end_and_print(const char *timer_name, struct timeval *timer){
-    struct timeval final = end_timer(timer);
-    printf("*** %s - %d.%d ***\n",timer_name,final.tv_sec,final.tv_usec);
+    struct timeval final_timer = end_timer(timer);
+    printf("*** %s - %ld.%ld ***\n",timer_name,final_timer.tv_sec,final_timer.tv_usec);
 }
 
 void init(){
@@ -149,34 +147,33 @@ Formulation long_input(FILE* file){
     return f;
 }
 
-void solve(int max_N, FILE* file, const string filename){
+void solve(int max_N, double pi_factor, double gap_improving, Solver s, PrimalHeuristic ph, bool debug, FILE* file, const string filename){
     Formulation f;
 
     f = short_input(file);
-    dual_lagrangean_solution s_simp, s_mink;
+    dual_lagrangean_solution solution;
 
-    struct timeval simple_timer_start = start_timer();
-    SimpleDualSolver pls_simp(f);    
-    s_simp = pls_simp.solve(max_N);
-    struct timeval simple_timer_end = end_timer(&simple_timer_start);
+    struct timeval timer_start = start_timer();
+    struct timeval timer_end;
 
-    struct timeval mink_timer_start = start_timer();
-    MinknapDualSolver pls_mink(f);    
-    s_mink = pls_mink.solve(max_N);
-    struct timeval mink_timer_end = end_timer(&mink_timer_start);
+    if(s==NO_CONSTRAINTS){
+        SimpleDualSolver pls_simp(f,debug);    
+        solution = pls_simp.solve(max_N,pi_factor,gap_improving);        
+    }else if(s==KNAPSACK){
+        MinknapDualSolver pls_mink(f,debug);    
+        solution = pls_mink.solve(max_N,pi_factor,gap_improving);
+    }
 
-    bool check_simp, check_mink;
-    check_simp = (s_simp.p.vx <= OPT_VALUES[filename] && s_simp.d.vx >= OPT_VALUES[filename]);
-    check_mink = (s_mink.p.vx <= OPT_VALUES[filename] && s_mink.d.vx >= OPT_VALUES[filename]);
+    timer_end = end_timer(&timer_start);
 
-    bool mink_better = (s_simp.d.vx - s_simp.p.vx) > (s_mink.d.vx - s_mink.p.vx);
-    double gap_diff = (s_mink.d.vx - s_mink.p.vx) - (s_simp.d.vx - s_simp.p.vx);
+    
+    bool check_validity;
+    check_validity = (solution.p.vx <= OPT_VALUES[filename] && solution.d.vx >= OPT_VALUES[filename]);
+
+    double gap_diff = (solution.d.vx - solution.p.vx);
         
-    // printf("SIMPLE: \tPRIMAL: %.5lf \tDUAL:%.5lf\t BEST VALUE KNOWN: %.5lf\t %s (%d.%d)\n",s_simp.p.vx, s_simp.d.vx,OPT_VALUES[filename], check_simp?"OK":"SOMETHING WRONG",simple_timer_end.tv_sec,simple_timer_end.tv_usec);
-    // printf("MINKNAP:\tPRIMAL: %.5lf \tDUAL:%.5lf\t BEST VALUE KNOWN: %.5lf\t %s - %s (%.5lf) (%d.%d)\n",s_mink.p.vx, s_mink.d.vx,OPT_VALUES[filename], check_mink?"OK":"SOMETHING WRONG", mink_better?"BETTER":"WORST", gap_diff,mink_timer_end.tv_sec,mink_timer_end.tv_usec);
 
-    printf("SIMPLE: \tPRIMAL: %.5lf \tDUAL:%.5lf\t BEST VALUE KNOWN: %.5lf\t %s\n",s_simp.p.vx, s_simp.d.vx,OPT_VALUES[filename], check_simp?"OK":"SOMETHING WRONG");
-    printf("MINKNAP:\tPRIMAL: %.5lf \tDUAL:%.5lf\t BEST VALUE KNOWN: %.5lf\t %s - %s (%.5lf)\n",s_mink.p.vx, s_mink.d.vx,OPT_VALUES[filename], check_mink?"OK":"SOMETHING WRONG", mink_better?"BETTER":"WORST", gap_diff);    
+    printf("%.5lf\t%.5lf\t%.5lf\t%.5lf\t %s",solution.p.vx, solution.d.vx, gap_diff, OPT_VALUES[filename], check_validity?"OK":"SOMETHING WRONG");
 }
 
 bool is_regular_file(const char* filepath){
@@ -185,7 +182,7 @@ bool is_regular_file(const char* filepath){
     return S_ISREG(path_stat.st_mode);
 }
 
-int main(){
+int main(int argc, char* argv[]){
     init();
     struct timeval total_timer = start_timer();
 
@@ -194,15 +191,32 @@ int main(){
     FILE* file;
     char buffer[512];
     int a;
+
+    if( Config::read_input(argc,argv)==-1){
+        return -1;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+    }
+
+    std::string heuristic_name, solver_name;
+    if(Config::primal_heuristic==CARDINALITY) heuristic_name = "Cardinality";
+    else if(Config::primal_heuristic==LAGRANGEAN_COST) heuristic_name = "Lagrangean Cost";
+
+    if(Config::solver==NO_CONSTRAINTS) solver_name = "No Contraints";
+    else if(Config::solver==KNAPSACK) solver_name = "Knapsack";
+
+    printf("MAX ITERATIONS:%d\nPI FACTOR:%.5f\nGAP_IMPROVING_FACTOR:%.5f\nHEURISTIC:%s\nSOLVER:%s\n\n",Config::iterations,Config::pi_factor,Config::gap_improving,heuristic_name.c_str(),solver_name.c_str());
+    printf("PARAMETERS\t%d\t%.5f\t%.5f\t%s\t%s\n\n",Config::iterations,Config::pi_factor,Config::gap_improving,heuristic_name.c_str(),solver_name.c_str());
+    printf("INSTANCE\tPRIMAL\tDUAL\tGAP\tBEST VALUE\n");
+
     if( (dir=opendir(INPUT_DIR))!=NULL ){
         while(  (ent=readdir(dir))!=NULL ){
             if( is_regular_file( ( string(INPUT_DIR) + string(ent->d_name) ).c_str() ) ){
-                printf("**** %s ****\n",ent->d_name);    
+
+                printf("%s\t",ent->d_name);    
                 a = snprintf(buffer,sizeof(buffer),"%s%s",INPUT_DIR,ent->d_name);
                 buffer[a]='\0';
 
                 file = fopen( buffer ,"r" );
-                solve(30,file,string(ent->d_name));
+                solve(Config::iterations,Config::pi_factor,Config::gap_improving,Config::solver,Config::primal_heuristic,Config::debug,file,string(ent->d_name));
                 printf("\n");
 
                 fclose(file);

@@ -18,14 +18,14 @@ gtest_header_path=../gtest-1.7.0/include
 mkfile_path = $(abspath $(lastword $(MAKEFILE_LIST)))
 current_dir = $(dir $(mkfile_path))
 
-CCFLAGS = -O3 -w
+CCFLAGS = -O3
 
 all: lib
 
-debug: CCFLAGS = -g -w
+debug: CCFLAGS = -g -O1
 debug: lib
 
-lib: check formulation.o heuristics.o lagrangean_formulation.o dual_lagrangean_method.o util.o subgradient_method.o constraint_line.o io.o
+lib: check formulation.o heuristics.o lagrangean_formulation.o dual_lagrangean_method.o util.o subgradient_method.o constraint_line.o io.o config.o
 	ar rc $(lib_path)/libpack.a $(object_path)/*.o
 
 test: lib
@@ -65,3 +65,6 @@ io.o: check
 
 util.o: check
 	g++ -I $(header_path) -o $(object_path)/util.o -c $(source_path)/util.cpp $(CCFLAGS)
+
+config.o: check
+	g++ -I $(header_path) -o $(object_path)/config.o -c $(source_path)/config.cpp $(CCFLAGS)

@@ -53,6 +53,7 @@ double knapsack(Formulation& f, int* x){
         c[i] = f.c()[i];
     }
 
+    delete cl_knapsack;
 
     return knapsack(c,a,b,n,m,x);   
 }

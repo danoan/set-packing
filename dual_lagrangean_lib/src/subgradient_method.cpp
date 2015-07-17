@@ -1,9 +1,16 @@
 #include "subgradient_method.h"
 
-SubgradientMethod::SubgradientMethod(LagrangeanFormulation& lf, int max_N, bool debug):_pi(2),_N(1),_num_it(0),
-                                                                                        _max_N(max_N),_DEBUG(debug), 
-                                                                                        _no_improvement(0){
-    _G.resize(lf.num_constraints());
+SubgradientMethod::SubgradientMethod(LagrangeanFormulation& p_lf, int p_max_N, 
+                                    double p_pi_factor, double p_max_no_improvement_factor, 
+                                    bool p_debug):_pi(2),
+                                   _num_it(0),
+                                   _max_N(p_max_N),
+                                   _no_improvement(0),
+                                   _pi_factor(p_pi_factor),
+                                   _DEBUG(p_debug){
+                                                                        
+    _G.resize(p_lf.num_constraints());
+    _max_no_improvement = (int) floor( _max_N*p_max_no_improvement_factor );
 }
 
 void SubgradientMethod::compute_gradient(LagrangeanFormulation& lf, solution_pair& d){
@@ -38,11 +45,11 @@ void SubgradientMethod::compute_gradient(LagrangeanFormulation& lf, solution_pai
 }
 
 bool SubgradientMethod::next(vector<double>& lbda, LagrangeanFormulation& lf, solution_pair& p, solution_pair& d){
-    if(_N>_max_N) return false;
+    if(_num_it>_max_N or _pi<1e-8) return false;
 
     compute_gradient(lf,d);
 
-    _factor = 1.0;
+    _factor = 1.0;  //Coudl be used as a way to randomize the algorithm. Not being used, however
     if(lf.objective_type()==MAX_TYPE){
         _T= ( _factor*_pi*(1.05*d.vx-p.vx) )/_sum_square_g;    
     }else{
@@ -68,13 +75,15 @@ void SubgradientMethod::improvement_check(LagrangeanFormulation& lf, solution_pa
     if( !( (lf.objective_type()==MAX_TYPE && d_prime.vx<d.vx) xor 
            (lf.objective_type()==MIN_TYPE && d_prime.vx>d.vx) ) ){                
             _no_improvement+=1;
-    }    
-
-    if(_no_improvement>=5){
-        _no_improvement = 0;
-        _pi = _pi/2.0;
-        _N+=1;        
+    }else{
+        _no_improvement=0;
     }
+
+    if(_no_improvement>=_max_no_improvement){
+        _no_improvement = 0;
+        _pi = _pi*_pi_factor;
+    }
+
 }
 
 bool SubgradientMethod::after_check(solution_pair& p, solution_pair& d){
@@ -95,7 +104,7 @@ bool SubgradientMethod::after_check(solution_pair& p, solution_pair& d){
 void SubgradientMethod::log(vector<double>& lbda){
 
     printf("SUBGRADIENT ITERATION: %d\n",_num_it);
-    printf("PI: %.12lf (%d)\n",_pi,_N);
+    printf("PI: %.12lf\n",_pi);
     print_vector("GRADIENT",_G);
     printf("G SUM SQUARE: %.4lf\n", _sum_square_g);
     printf("STEP SIZE: %.12lf\n", _T);

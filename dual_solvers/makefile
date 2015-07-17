@@ -22,11 +22,11 @@ lib_pisinger_lib=../pisinger_lib/build/lib
 header_ext=ext/include
 lib_ext=ext/lib
 
-CCFLAGS = -O3 -w
+CCFLAGS = -O3
 
 all: main
 
-debug: CCFLAGS = -g -w
+debug: CCFLAGS = -g -O1
 debug: main
 
 main: check lib

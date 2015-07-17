@@ -12,24 +12,27 @@ using namespace std;
 
 class Formulation{
 private:
-    void copy_formulation(Formulation& p_f);
+    void copy_formulation(const Formulation& p_f);
 
 protected:
     vector< ConstraintLine* > _constraints;
     vector<double> _c;
     int _objective_type;
+    bool _initialized_flag;
 
     bool check_constraint(ConstraintLine& rl,vector<double>& x);
 
 public:
-    Formulation(){};
+    Formulation():_initialized_flag(false){};
     Formulation(vector< vector<double> >& p_A, vector<double>& p_b, vector<double>& p_c, 
                 vector<int>& p_op, int p_objective_type);
 
     Formulation(vector< vector<int> >& p_A_index, vector< vector<double> >& p_A_cost, vector<double>& p_b, 
                 vector<double>& p_c, vector<int>& p_op, int p_objective_type );
 
-    Formulation(Formulation& f);
+    Formulation(const Formulation& f);    
+    ~Formulation();
+    Formulation& operator=(const Formulation& p_f);
 
     inline vector< ConstraintLine* >::iterator begin(){ return _constraints.begin(); };
     inline vector< ConstraintLine* >::iterator end(){ return _constraints.end(); };    

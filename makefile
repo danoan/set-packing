@@ -4,6 +4,12 @@ all:
 	$(MAKE) -C problem_gen
 	$(MAKE) -C dual_solvers
 
+debug:
+	$(MAKE) debug -C pisinger_lib
+	$(MAKE) debug -C dual_lagrangean_lib
+	$(MAKE) -C problem_gen
+	$(MAKE) debug -C dual_solvers
+
 clear:	
 	$(MAKE) clear -C pisinger_lib
 	$(MAKE) clear -C dual_lagrangean_lib

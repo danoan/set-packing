@@ -14,10 +14,9 @@
 #include "io.h"
 #include "util.h"
 
-extern bool DEBUG;
-
 class MinknapDualSolver:DualLagrangeanMethod{
 private:
+    bool _debug;
     Formulation _f;
     LagrangeanFormulation _lf;
 
@@ -32,11 +31,12 @@ private:
     solution_pair update_primal(solution_pair& p, solution_pair& d);
     solution_pair find_dual_solution(vector<double>& lbda);
     solution_pair solve_lagrangean_subproblem(Formulation& f, LagrangeanFormulation& lf, solution_pair& p,
-                                      solution_pair& d, vector<double>& lbda, int max_N);
+                                      solution_pair& d, vector<double>& lbda, int p_max_N, 
+                                      double p_pi_factor, double p_max_no_improvement);
 
 public:
-    MinknapDualSolver(Formulation& p_f);
-    dual_lagrangean_solution solve(int max_N);
+    MinknapDualSolver(Formulation& p_f, bool p_debug);
+    dual_lagrangean_solution solve(int p_max_N, double p_pi_factor, double p_max_no_improvement);
 };
 
 #endif

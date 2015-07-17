@@ -1,0 +1,31 @@
+function min(x){
+    val=100000000;
+    count=0;
+    min_i[count]=0;
+    for(i=0;i<NR;i++){
+        if(val>x[i]){
+            count=0;
+            val=x[i];
+            min_i[count++]=i;
+        }else if(val==x[i]){            
+            val=x[i];
+            min_i[count++]=i;
+        }
+    }
+    for(i=0;i<count;i++){
+        printf min_i[i] "\t"
+    }
+}
+
+BEGIN{
+    index_a=0;
+}
+
+{
+    a[index_a++]=$column;
+    next;
+}
+
+END{
+    minimum=min(a);
+}

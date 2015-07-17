@@ -8,10 +8,9 @@
 #include "heuristics.h"
 #include "subgradient_method.h"
 
-extern bool DEBUG;
-
 class SimpleDualSolver:DualLagrangeanMethod{
 private:
+    bool _debug;
     Formulation _f;
     LagrangeanFormulation _lf;
 
@@ -26,11 +25,12 @@ private:
     solution_pair update_primal(solution_pair& p, solution_pair& d);
     solution_pair find_dual_solution(vector<double>& lbda);
     solution_pair solve_lagrangean_subproblem(Formulation& f, LagrangeanFormulation& lf, solution_pair& p,
-                                      solution_pair& d, vector<double>& lbda, int max_N);
+                                      solution_pair& d, vector<double>& lbda, int p_max_N, 
+                                      double p_pi_factor, double p_max_no_improvement);
 
 public:
-    SimpleDualSolver(Formulation& p_f);
-    dual_lagrangean_solution solve(int max_N);
+    SimpleDualSolver(Formulation& p_f, bool p_debug);
+    dual_lagrangean_solution solve(int p_max_N, double p_pi_factor, double p_max_no_improvement);
 };
 
 #endif

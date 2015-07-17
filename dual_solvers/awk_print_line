@@ -1,0 +1,26 @@
+BEGIN{
+    curr_line=0;
+    total_lines_to_print=0;
+    lines[0]=0;
+}
+{
+    curr_line++;
+
+    if(curr_line==1){
+        total_lines_to_print=NF;
+        for(i=0;i<NF;i++){
+            lines[i] = $i;
+        }
+    }
+
+    if(curr_line!=1){
+        for(i=0;i<total_lines_to_print;i++){
+            if(lines[i]==(curr_line-2)){
+                print;
+                break;
+            }    
+        }
+    }
+
+    next;
+}

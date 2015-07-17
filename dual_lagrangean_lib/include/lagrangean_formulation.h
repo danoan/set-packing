@@ -18,16 +18,21 @@ private:
     vector< vector<int> > _restr_var_appears;   //Stores the restrictions indexes where the var appears;
 
     vector< ConstraintLine* > _primal_constraints;
+    vector< int > _dual_mask;
 
     void check_lbda_setted();    
-    void init(bool ALL_CONST_ARE_DUAL, int* dual_mask);
+    void init();
     void update_lagrangean_costs();
+    void select_restrictions();
 
 public:
     LagrangeanFormulation():Formulation(){};
     
-    LagrangeanFormulation(Formulation& f, bool ALL_CONST_ARE_DUAL=true, int* dual_mask=NULL );
-    LagrangeanFormulation(Formulation& f, bool ALL_CONST_ARE_DUAL, int* dual_mask, vector< ConstraintLine* > extra_primal, vector< ConstraintLine* > extra_dual );
+    LagrangeanFormulation(Formulation& f);
+    LagrangeanFormulation(Formulation& f, vector< int >& dual_mask, vector< ConstraintLine* > extra_primal, vector< ConstraintLine* > extra_dual );
+
+    LagrangeanFormulation(const LagrangeanFormulation& p_lf);
+    LagrangeanFormulation& operator=(const LagrangeanFormulation& p_lf);    
 
     inline void lbda(vector<double> p_lbda){ _lbda=p_lbda; update_lagrangean_costs(); };
     inline vector<double>& lbda(){ return _lbda; };

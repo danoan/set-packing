@@ -20,10 +20,10 @@ bool compare_benefit_cost(benefit_cost_pair a, benefit_cost_pair b);
 
 vector<benefit_cost_pair> compute_benefit_cost(ConstraintLine& br, vector<double>& cost_vector);
 
-solution_pair find_int_solution_by_benefit_cost_heuristic(Formulation& f, vector<benefit_cost_pair>& bc_vector);
-solution_pair find_int_feasible_solution_from_dual(solution_pair& d, Formulation& f,vector<benefit_cost_pair>& bc_vector);
+solution_pair find_primal_int_solution_by_benefit_cost_heuristic(Formulation& f, vector<benefit_cost_pair>& bc_vector);
+solution_pair find_primal_int_feasible_solution_from_dual(solution_pair& d, Formulation& f,vector<benefit_cost_pair>& bc_vector);
 
-solution_pair find_int_solution_by_lagrangean_heuristic(LagrangeanFormulation& lf);
+solution_pair find_int_optimal_solution_lagrangean_subproblem(LagrangeanFormulation& lf);
 
 
 #endif

@@ -10,16 +10,18 @@
 class SubgradientMethod{
 private:
     double _pi;
+    double _pi_factor;
     double _T;
     double _factor;    
 
-    int _N;
-    int _max_N;
-    int _no_improvement;
-    int _num_it;
+    int _max_N; //Max Number of Iterations
+    
+    int _no_improvement;    //Number of iterations without any improvement
+    int _max_no_improvement;    //Number of no improvement iterations to happen to halve _pi
+    int _num_it;    // Current Iteration Number
 
-    vector<double> _G;
-    double _sum_square_g;        
+    vector<double> _G;  //Gradient Vector
+    double _sum_square_g;   //Sum of the square of the gradient components
 
     bool _all_zeros;
 
@@ -28,7 +30,7 @@ private:
     void log(vector<double>& lbda);
 
 public:
-    SubgradientMethod(LagrangeanFormulation& lf, int max_N, bool debug=false);
+    SubgradientMethod(LagrangeanFormulation& p_lf, int p_max_N, double p_pi_factor, double p_max_no_improvement_factor, bool p_debug=false);
     bool next(vector<double>& lbda, LagrangeanFormulation& lf, solution_pair& p, solution_pair& d);
     void improvement_check(LagrangeanFormulation& lf, solution_pair& d_prime, solution_pair& d);
     bool after_check(solution_pair& p, solution_pair& d); 

@@ -1,15 +1,14 @@
 #include "lagrangean_formulation.h"
 
-LagrangeanFormulation::LagrangeanFormulation(Formulation& f,
-                                             bool ALL_CONST_ARE_DUAL,
-                                             int* dual_mask):Formulation(f){
-    init(ALL_CONST_ARE_DUAL,dual_mask);
+LagrangeanFormulation::LagrangeanFormulation(Formulation& f):Formulation(f){
+    init();
 }
 
-LagrangeanFormulation::LagrangeanFormulation(Formulation& f, bool ALL_CONST_ARE_DUAL, 
-                                             int* dual_mask, vector< ConstraintLine* > extra_primal, 
-                                             vector< ConstraintLine* > extra_dual ): Formulation(f){
-    init(ALL_CONST_ARE_DUAL,dual_mask);
+LagrangeanFormulation::LagrangeanFormulation(Formulation& f, vector< int >& p_dual_mask,
+                                             vector< ConstraintLine* > extra_primal, 
+                                             vector< ConstraintLine* > extra_dual ): Formulation(f),
+                                             _dual_mask(p_dual_mask){
+    init();
     for(int i=0;i<extra_primal.size();i++){
         _primal_constraints.push_back(extra_primal[i]);
     }
@@ -22,10 +21,30 @@ LagrangeanFormulation::LagrangeanFormulation(Formulation& f, bool ALL_CONST_ARE_
     }    
 }
 
-void LagrangeanFormulation::init(bool ALL_CONST_ARE_DUAL, int* dual_mask){
-    _restr_var_appears.resize( c().size());
+LagrangeanFormulation::LagrangeanFormulation(const LagrangeanFormulation& p_lf):Formulation(p_lf){
+    _lbda = p_lf._lbda;
+    _lagrangean_costs = p_lf._lagrangean_costs;
+    _dual_mask = p_lf._dual_mask;
 
-    if(ALL_CONST_ARE_DUAL){
+    select_restrictions();
+}
+
+LagrangeanFormulation& LagrangeanFormulation::operator=(const LagrangeanFormulation& p_lf){
+    if(this!=&p_lf){        
+        Formulation::operator=(p_lf);
+        _lbda = p_lf._lbda;
+        _lagrangean_costs = p_lf._lagrangean_costs;
+        _dual_mask = p_lf._dual_mask;        
+
+        init(); //Constructor without parameters doesn't call this method, so I have to call it here
+                //And it should be after _dual_mask has been setted, because it's used at select_restrictions
+    }
+
+    return *this;
+}
+
+void LagrangeanFormulation::select_restrictions(){
+    if(_dual_mask.size()==0){
         for(line_it it=_constraints.begin();it!=_constraints.end();it++){
             _dual_constraints.push_back(*it);
             for(member_it mt= (*it)->begin(); mt!=(*it)->end();mt++){
@@ -33,8 +52,8 @@ void LagrangeanFormulation::init(bool ALL_CONST_ARE_DUAL, int* dual_mask){
             }
         }
     }else{
-        for(int i=0;i<_constraints.size();i++){
-            if(dual_mask[i]==1){
+        for(int i=0;i<_dual_mask.size();i++){
+            if(_dual_mask[i]==1){
                 _dual_constraints.push_back(_constraints[i]);
                 for(member_it mt= _constraints[i]->begin(); mt!=_constraints[i]->end();mt++){
                     _restr_var_appears[ (*mt).index ].push_back( _constraints[i]->index() );
@@ -44,6 +63,12 @@ void LagrangeanFormulation::init(bool ALL_CONST_ARE_DUAL, int* dual_mask){
             }
         }
     }
+}
+
+void LagrangeanFormulation::init(){
+    _restr_var_appears.resize( c().size());
+
+    select_restrictions();
 
     _lagrangean_costs = vector<double>();
     _lagrangean_costs.resize(_c.size());         

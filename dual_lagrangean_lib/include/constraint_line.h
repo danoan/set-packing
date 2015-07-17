@@ -2,6 +2,7 @@
 #define __RESTRICTION_LINE__
 
 #include <vector>
+#include <stdio.h>
 
 typedef struct _restriction_member{
     int index;
@@ -18,12 +19,11 @@ private:
     int _id;
     
 
-    void copy_line(const ConstraintLine& p_rl);
+    void copy_line(ConstraintLine* p_rl);
 
 public:
     ConstraintLine(){ _id = _next_id++;};
-    ConstraintLine(const ConstraintLine& p_rl);
-    ConstraintLine& operator=(const ConstraintLine& p_rl);
+    ConstraintLine(ConstraintLine* p_rl);
 
     inline double rhs(){return _rhs;}
     inline void rhs(double p_rhs){ _rhs=p_rhs;}

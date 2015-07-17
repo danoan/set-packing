@@ -1,7 +1,10 @@
 #include "formulation.h"
 
 Formulation::Formulation(vector< vector<double> >& p_A, vector<double>& p_b, vector<double>& p_c, 
-            vector<int>& p_op, int p_objective_type):_c(p_c), _objective_type(p_objective_type){
+            vector<int>& p_op, int p_objective_type):_c(p_c), _objective_type(p_objective_type),
+            _initialized_flag(true){
+    // printf("NORMAL CONSTRUCTOR\n");
+
     if( !( (p_A.size()==p_b.size()) &&
            (p_A.size()==p_op.size()) )   ) {
         //ERROR
@@ -30,7 +33,9 @@ Formulation::Formulation(vector< vector<double> >& p_A, vector<double>& p_b, vec
 
 Formulation::Formulation(vector< vector<int> >& p_A_index, vector< vector<double> >& p_A_cost, vector<double>& p_b, 
             vector<double>& p_c, vector<int>& p_op, int p_objective_type ):_c(p_c), 
-            _objective_type(p_objective_type){
+            _objective_type(p_objective_type),_initialized_flag(true){
+
+    // printf("NORMAL CONSTRUCTOR\n");
 
     if( !( (p_A_index.size()==p_A_cost.size()) && 
            (p_A_index.size()==p_b.size()) &&
@@ -54,15 +59,38 @@ Formulation::Formulation(vector< vector<int> >& p_A_index, vector< vector<double
     }
 }
 
-Formulation::Formulation(Formulation& f){
+Formulation::Formulation(const Formulation& f):_initialized_flag(true){
+    // printf("COPY CONSTRUCTOR\n");
     copy_formulation(f);
 }
 
-void Formulation::copy_formulation(Formulation& p_f){
+Formulation& Formulation::operator=(const Formulation& p_f){
+    // printf("ASSIGNMENT OPERATOR\n");
+    if(this!=&p_f){        
+        // printf("COPY\n");
+        _initialized_flag=true;
+        copy_formulation(p_f);
+    }
+    return *this;
+}
+
+Formulation::~Formulation(){
+    // printf("DELETE %p %s\n",this,_initialized_flag?"EXECUTE":"SKIP");
+    if(_initialized_flag){
+        for(int i=0;i<_constraints.size();i++){
+            delete _constraints[i];
+        }
+    }
+}
+
+void Formulation::copy_formulation(const Formulation& p_f){
     _constraints.resize(p_f._constraints.size());
     _c.resize(p_f._c.size());
 
-    _constraints = p_f._constraints;
+    for(int i=0;i<p_f._constraints.size();i++){
+        _constraints[i] = new ConstraintLine( p_f._constraints[i] );    
+    }
+    
     _c = p_f._c;
     _objective_type = p_f._objective_type;      
 }

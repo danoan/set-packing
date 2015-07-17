@@ -11,12 +11,12 @@ source_path=original/src
 header_path=original/include
 
 
-CCFLAGS = -O3 -w
+CCFLAGS = -O3
 
 
 all: lib main.out
 
-debug: CCFLAGS = -g -w
+debug: CCFLAGS = -g -O1
 debug: all
 
 lib: check minknap.o pisinger.o

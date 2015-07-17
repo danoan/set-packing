@@ -21,16 +21,16 @@ void SubgradientMethod::compute_gradient(LagrangeanFormulation& lf, solution_pai
     _sum_square_g = 0;
     int i;
     line_it it_r;
-    ConstraintLine rl;
+    ConstraintLine* rl;
     ConstraintMember rm;
     for(i=0,it_r=lf.dual_begin();it_r!=lf.dual_end();it_r++,i++){
-        rl = *(*it_r);
+        rl = (*it_r).second;
         sum_a=0;
-        for(member_it it_m=rl.begin();it_m!=rl.end();it_m++){
+        for(member_it it_m=rl->begin();it_m!=rl->end();it_m++){
             rm = (*it_m);
             sum_a+= rm.cost*d.x[rm.index];
         }
-        g = rl.rhs() - sum_a;
+        g = rl->rhs() - sum_a;
 
         if(lf.objective_type()==MAX_TYPE){
             _G[i]=-g;
@@ -49,7 +49,7 @@ bool SubgradientMethod::next(vector<double>& lbda, LagrangeanFormulation& lf, so
 
     compute_gradient(lf,d);
 
-    _factor = 1.0;  //Coudl be used as a way to randomize the algorithm. Not being used, however
+    _factor = 1.0;  //Can be used as a way to randomize the algorithm. Not being used, however
     if(lf.objective_type()==MAX_TYPE){
         _T= ( _factor*_pi*(1.05*d.vx-p.vx) )/_sum_square_g;    
     }else{

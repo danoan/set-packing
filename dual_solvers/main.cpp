@@ -38,7 +38,7 @@ Formulation long_input(){
     return f;
 }
 
-void single_input(InputType input_type, int max_N, double pi_factor, double max_no_improvement, Solver solver){
+void single_input(InputType input_type, int max_N, double pi_factor, double max_no_improvement, Solver solver, PrimalHeuristic ph){
 
     // printf("DECLARING\n");
     Formulation f;
@@ -58,10 +58,10 @@ void single_input(InputType input_type, int max_N, double pi_factor, double max_
 
     if(solver==NO_CONSTRAINTS){
         SimpleDualSolver pls(f,Config::debug);    
-        s = pls.solve(max_N,pi_factor,max_no_improvement);
+        s = pls.solve(max_N,pi_factor,max_no_improvement,ph==CARDINALITY?false:true);
     }else{
         MinknapDualSolver pls(f,Config::debug);    
-        s = pls.solve(max_N,pi_factor,max_no_improvement);
+        s = pls.solve(max_N,pi_factor,max_no_improvement,ph==CARDINALITY?false:true);
     }
     
     printf("FINAL ANSWER\n");
@@ -75,7 +75,7 @@ int main(int argc, char* argv[]){
     if(Config::read_input(argc,argv)==-1){
         return 0;
     }else{
-        single_input(Config::input_type,Config::iterations,Config::pi_factor,Config::gap_improving,Config::solver);    
+        single_input(Config::input_type,Config::iterations,Config::pi_factor,Config::gap_improving,Config::solver,Config::primal_heuristic);    
     }
     
     return 0;

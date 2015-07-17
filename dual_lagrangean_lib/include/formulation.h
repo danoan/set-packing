@@ -15,7 +15,7 @@ private:
     void copy_formulation(const Formulation& p_f);
 
 protected:
-    vector< ConstraintLine* > _constraints;
+    unordered_map< int, ConstraintLine* > _constraints;
     vector<double> _c;
     int _objective_type;
     bool _initialized_flag;
@@ -34,14 +34,14 @@ public:
     ~Formulation();
     Formulation& operator=(const Formulation& p_f);
 
-    inline vector< ConstraintLine* >::iterator begin(){ return _constraints.begin(); };
-    inline vector< ConstraintLine* >::iterator end(){ return _constraints.end(); };    
+    inline line_it begin(){ return _constraints.begin(); };
+    inline line_it end(){ return _constraints.end(); };    
 
     inline int num_constraints(){return _constraints.size();};
-
     inline vector<double>& c(){ return _c; };    
-
     inline int objective_type(){ return _objective_type; };
+
+    ConstraintLine* replace_constraint(vector<ConstraintMember>& vec_cm, ConstraintLine* cl);
 
     virtual double compute(vector<double> p_x);    
     virtual bool check_constraints(vector<double> p_x);    

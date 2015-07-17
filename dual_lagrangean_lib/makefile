@@ -18,11 +18,11 @@ gtest_header_path=../gtest-1.7.0/include
 mkfile_path = $(abspath $(lastword $(MAKEFILE_LIST)))
 current_dir = $(dir $(mkfile_path))
 
-CCFLAGS = -O3
+CCFLAGS = -std=c++11 -O3
 
 all: lib
 
-debug: CCFLAGS = -g -O1
+debug: CCFLAGS = -std=c++11 -g -O1
 debug: lib
 
 lib: check formulation.o heuristics.o lagrangean_formulation.o dual_lagrangean_method.o util.o subgradient_method.o constraint_line.o io.o config.o

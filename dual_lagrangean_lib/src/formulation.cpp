@@ -27,7 +27,7 @@ Formulation::Formulation(vector< vector<double> >& p_A, vector<double>& p_b, vec
         }
         rl->rhs( p_b[i] );
         rl->op( p_op[i] );
-        _constraints.push_back(rl);
+        _constraints[rl->index()] = rl;
     }
 }
 
@@ -55,7 +55,7 @@ Formulation::Formulation(vector< vector<int> >& p_A_index, vector< vector<double
         }
         rl->rhs( p_b[i] );
         rl->op( p_op[i] );
-        _constraints.push_back(rl);
+        _constraints[rl->index()] = rl;
     }
 }
 
@@ -77,22 +77,30 @@ Formulation& Formulation::operator=(const Formulation& p_f){
 Formulation::~Formulation(){
     // printf("DELETE %p %s\n",this,_initialized_flag?"EXECUTE":"SKIP");
     if(_initialized_flag){
-        for(int i=0;i<_constraints.size();i++){
-            delete _constraints[i];
+        for(line_it it=_constraints.begin();it!=_constraints.end();it++){
+            delete (*it).second;
         }
     }
 }
 
 void Formulation::copy_formulation(const Formulation& p_f){
-    _constraints.resize(p_f._constraints.size());
     _c.resize(p_f._c.size());
 
-    for(int i=0;i<p_f._constraints.size();i++){
-        _constraints[i] = new ConstraintLine( p_f._constraints[i] );    
+    ConstraintLine *cl,*temp;
+    int i=0;
+    for(auto it=p_f._constraints.begin();it!=p_f._constraints.end();it++){
+        cl = (*it).second;
+        temp = new ConstraintLine( cl );
+        _constraints[temp->index()] = temp;    
     }
     
     _c = p_f._c;
     _objective_type = p_f._objective_type;      
+}
+
+ConstraintLine* Formulation::replace_constraint(vector<ConstraintMember>& vec_cm, ConstraintLine* cl){
+    cl->replace(vec_cm);
+    return cl;
 }
 
 double Formulation::compute(vector<double> x){
@@ -135,10 +143,10 @@ bool Formulation::check_constraint(ConstraintLine& rl,vector<double>& x){
 }
 
 bool Formulation::check_constraints(vector<double> x){    
-    ConstraintLine rl;
+    ConstraintLine* rl;
     for(line_it it_r=begin();it_r!=end();it_r++){
-        rl = *(*it_r);
-        if(check_constraint( rl,x )==false) return false;
+        rl = (*it_r).second;
+        if(check_constraint( *rl,x )==false) return false;
     }
 
     return true;
@@ -158,24 +166,24 @@ string Formulation::to_str(){
     }
     s<<"\t subject to\n";
 
-    ConstraintLine rl;
+    ConstraintLine* rl;
     ConstraintMember rm;
     for(line_it it_r=begin();it_r!=end();it_r++){
-        rl = *(*it_r);
-        for(member_it it_m=rl.begin();it_m!=rl.end();it_m++){
+        rl = (*it_r).second;
+        for(member_it it_m=rl->begin();it_m!=rl->end();it_m++){
             rm = (*it_m);
 
             if(rm.cost>=0) s << " +";
             s << rm.cost << "x" << rm.index+1;
         }
 
-        if(rl.op()==EQUAL) s << " = ";
-        if(rl.op()==GREATER) s << " > ";
-        if(rl.op()==GREATER_EQUAL) s << " >= ";
-        if(rl.op()==LESSER) s << " < ";
-        if(rl.op()==LESSER_EQUAL) s << " <= ";
+        if(rl->op()==EQUAL) s << " = ";
+        if(rl->op()==GREATER) s << " > ";
+        if(rl->op()==GREATER_EQUAL) s << " >= ";
+        if(rl->op()==LESSER) s << " < ";
+        if(rl->op()==LESSER_EQUAL) s << " <= ";
 
-        s << rl.rhs();
+        s << rl->rhs();
         s << "\n";
     }
     s << "\n";

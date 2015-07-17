@@ -2,13 +2,13 @@ declare la=(0.001 0.002 0.005 0.01 0.02 0.05)
 declare lb=(0.9 0.8 0.7 0.6 0.5)
 declare lc=('C' 'L')
 declare ld=(5 10 15 20)
-declare le=('N' 'M')
+declare le=('N' 'K')
 
 
 bin_path="./build/bin/batch_run.out"
 
 
-for e in 'N' 'M'
+for e in 'N' 'K'
 do          
     mkdir -p "output/experiment/$e"
     for a in 0.001 0.002 0.005 0.01 0.02 0.05

@@ -21,6 +21,13 @@ void ConstraintLine::copy_line(ConstraintLine* p_rl){
     _id = p_rl->_id;
 }
 
+ConstraintLine::ConstraintLine(std::vector< ConstraintMember > &p_members, double p_rhs, int p_op){
+    _id = _next_id++;
+    _members = p_members;
+    _rhs = p_rhs;
+    _op = p_op;
+}
+
 ConstraintLine::ConstraintLine(ConstraintLine* p_rl){
     copy_line(p_rl);
 }

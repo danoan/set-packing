@@ -18,6 +18,7 @@
 #include "simple_dual_solver.h"
 #include "minknap_dual_solver.h"
 
+// #define INPUT_DIR "/home/dantunes/Desktop/set-packing-master/dual_solvers/input/instances/"
 #define INPUT_DIR "/home/daniel/Projects/set_packing/code/dual_solvers/input/instances/"
 
 std::map<string,double> OPT_VALUES;
@@ -158,10 +159,10 @@ void solve(int max_N, double pi_factor, double gap_improving, Solver s, PrimalHe
 
     if(s==NO_CONSTRAINTS){
         SimpleDualSolver pls_simp(f,debug);    
-        solution = pls_simp.solve(max_N,pi_factor,gap_improving);        
+        solution = pls_simp.solve(max_N,pi_factor,gap_improving,ph==CARDINALITY?false:true);        
     }else if(s==KNAPSACK){
         MinknapDualSolver pls_mink(f,debug);    
-        solution = pls_mink.solve(max_N,pi_factor,gap_improving);
+        solution = pls_mink.solve(max_N,pi_factor,gap_improving,ph==CARDINALITY?false:true);
     }
 
     timer_end = end_timer(&timer_start);

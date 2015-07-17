@@ -10,9 +10,9 @@ ConstraintLine* get_knapsack_constraint(Formulation& f){
     for(int j=0;j<f.c().size();j++){
         sum_aj=0;
         for(line_it it_r=f.begin();it_r!=f.end();it_r++){
-            ConstraintLine rl = *(*it_r);
+            ConstraintLine* rl = (*it_r).second;
 
-            for(member_it it_m=rl.begin();it_m!=rl.end();it_m++){
+            for(member_it it_m=rl->begin();it_m!=rl->end();it_m++){
                 ConstraintMember rm = (*it_m);
                 if(rm.index==j){
                     sum_aj+= rm.cost;
@@ -27,7 +27,7 @@ ConstraintLine* get_knapsack_constraint(Formulation& f){
     }
 
     for(line_it it_r=f.begin();it_r!=f.end();it_r++){
-        sum_bj+=(*it_r)->rhs();
+        sum_bj+=(*it_r).second->rhs();
     }
     backpack_restriction->rhs(sum_bj);
     backpack_restriction->op(LESSER_EQUAL);

@@ -1,7 +1,7 @@
 #include "minknap_dual_solver.h"
 
-MinknapDualSolver::MinknapDualSolver(Formulation& p_f, bool p_debug):_debug(p_debug){
-    ConstraintLine* _primal_knapsack_restriction = get_knapsack_constraint(p_f);      
+MinknapDualSolver::MinknapDualSolver(Formulation& p_f, bool p_debug): _debug(p_debug){
+    _primal_knapsack_restriction = get_knapsack_constraint(p_f);      
 
     _f = Formulation(p_f);
     _lf = LagrangeanFormulation(_f);
@@ -10,7 +10,8 @@ MinknapDualSolver::MinknapDualSolver(Formulation& p_f, bool p_debug):_debug(p_de
     _lagrangean_kc = compute_benefit_cost(*_primal_knapsack_restriction,_lf.lagrangean_costs());    
 }
 
-dual_lagrangean_solution MinknapDualSolver::solve(int p_max_N, double p_pi_factor, double p_max_no_improvement){
+dual_lagrangean_solution MinknapDualSolver::solve(int p_max_N, double p_pi_factor, 
+                         double p_max_no_improvement, bool p_use_lagrangean_costs){
     vector<double> lbda;
     for(int i=0;i<_f.num_constraints();i++){
         lbda.push_back(1);
@@ -21,7 +22,7 @@ dual_lagrangean_solution MinknapDualSolver::solve(int p_max_N, double p_pi_facto
 
     if(_debug) log_start(_f,_lf,lbda,p,d);    
 
-    solve_lagrangean_subproblem(_f,_lf,p,d,lbda,p_max_N, p_pi_factor, p_max_no_improvement);    
+    solve_lagrangean_subproblem(_f,_lf,p,d,lbda,p_max_N, p_pi_factor, p_max_no_improvement, p_use_lagrangean_costs);    
 
     dual_lagrangean_solution s;
     s.p = p;
@@ -41,9 +42,9 @@ ConstraintLine* MinknapDualSolver::get_knapsack_constraint(Formulation& f){
     for(int j=0;j<f.c().size();j++){
         sum_aj=0;
         for(line_it it_r=f.begin();it_r!=f.end();it_r++){
-            ConstraintLine rl = *(*it_r);
+            ConstraintLine* rl = (*it_r).second;
 
-            for(member_it it_m=rl.begin();it_m!=rl.end();it_m++){
+            for(member_it it_m=rl->begin();it_m!=rl->end();it_m++){
                 ConstraintMember rm = (*it_m);
                 if(rm.index==j){
                     sum_aj+= rm.cost;
@@ -58,7 +59,7 @@ ConstraintLine* MinknapDualSolver::get_knapsack_constraint(Formulation& f){
     }
 
     for(line_it it_r=f.begin();it_r!=f.end();it_r++){
-        sum_bj+=(*it_r)->rhs();
+        sum_bj+=(*it_r).second->rhs();
     }
     backpack_restriction->rhs(sum_bj);
     backpack_restriction->op(LESSER_EQUAL);
@@ -73,8 +74,16 @@ solution_pair MinknapDualSolver::find_primal_solution(){
     return s;
 }
 
-solution_pair MinknapDualSolver::update_primal(solution_pair& p, solution_pair& d){
-    solution_pair s = find_primal_int_feasible_solution_from_dual(d,_f,_primal_kc);
+solution_pair MinknapDualSolver::update_primal(solution_pair& p, solution_pair& d, bool p_use_lagrangean_costs){
+    solution_pair s;
+
+    if(p_use_lagrangean_costs){
+        _lagrangean_kc = compute_benefit_cost(*_primal_knapsack_restriction,_lf.lagrangean_costs());
+        s = find_primal_int_feasible_solution_from_dual(d,_f,_lagrangean_kc);
+    }else{
+        s = find_primal_int_feasible_solution_from_dual(d,_f,_primal_kc);
+    }
+
     s.vx = _f.compute(s.x);        
 
     if(_f.objective_type()==MAX_TYPE){
@@ -98,16 +107,17 @@ int MinknapDualSolver::active_constraints_for_vars(vector<int>& Ix){
     */
 
     map<int,char> marker;
-    vector<int> constr_indexes;
+    unordered_set<int> constr_indexes;
     int k=0;
 
     for(int i=0;i<Ix.size();i++){
 
         constr_indexes = _lf.constr_var_appears( Ix[i] );
 
-        for(int j=0;j<constr_indexes.size();j++){
-            if( marker.find( constr_indexes[j] ) == marker.end() ){
-                marker[constr_indexes[j]] = 1;
+        for(unordered_set<int>::iterator it=constr_indexes.begin();it!=constr_indexes.end();it++){
+
+            if( marker.find( *it ) == marker.end() ){
+                marker[ *it ] = 1;
                 k+=1; 
             }
         }
@@ -214,7 +224,8 @@ solution_pair MinknapDualSolver::find_dual_solution(vector<double>& lbda){
 }
 
 solution_pair MinknapDualSolver::solve_lagrangean_subproblem(Formulation& f, LagrangeanFormulation& lf, solution_pair& p,
-                                  solution_pair& d, vector<double>& lbda, int p_max_N, double p_pi_factor, double p_max_no_improvement){
+                                  solution_pair& d, vector<double>& lbda, int p_max_N, double p_pi_factor, 
+                                  double p_max_no_improvement, bool p_use_lagrangean_costs){
     solution_pair d_prime;   
     SubgradientMethod sm(lf,p_max_N,p_pi_factor,p_max_no_improvement,_debug);
 
@@ -223,7 +234,7 @@ solution_pair MinknapDualSolver::solve_lagrangean_subproblem(Formulation& f, Lag
         sm.improvement_check(lf,d,d_prime);
 
         d = d_prime;
-        p = update_primal(p,d);   
+        p = update_primal(p,d,p_use_lagrangean_costs);   
 
         if( sm.after_check(p,d)==false ){
             return d;

@@ -17,5 +17,7 @@ int main(){
     test_pool_clique_check_order();
     test_extend_pool();
 
+    test_extend_pool_2();
+
     return 0;
 }

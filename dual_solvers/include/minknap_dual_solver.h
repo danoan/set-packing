@@ -14,6 +14,8 @@
 #include "io.h"
 #include "util.h"
 
+#include "pool_clique.h"
+
 class MinknapDualSolver:DualLagrangeanMethod{
 private:
     bool _debug;

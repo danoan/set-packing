@@ -31,7 +31,7 @@ void ColisionGraph::create_all_edges(std::vector<int>& vars_indexes){
                 _vertice_links[var_i].set(var_j);
                 _vertice_links[var_j].set(var_i);
 
-                printf("ADD EDGE %d->%d\n",var_i,var_j);
+                // printf("ADD EDGE %d->%d\n",var_i,var_j);
             }
         }
     }

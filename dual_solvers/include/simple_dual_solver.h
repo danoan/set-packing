@@ -8,6 +8,8 @@
 #include "heuristics.h"
 #include "subgradient_method.h"
 
+#include "pool_clique.h"
+
 class SimpleDualSolver:DualLagrangeanMethod{
 private:
     bool _debug;

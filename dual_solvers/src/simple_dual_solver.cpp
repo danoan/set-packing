@@ -110,6 +110,8 @@ solution_pair SimpleDualSolver::solve_lagrangean_subproblem(Formulation& f, Lagr
     solution_pair d_prime;   
     SubgradientMethod sm(lf,p_max_N,p_pi_factor,p_max_no_improvement,_debug);
 
+    bool still_extending=true;
+    PoolClique pool(lf);
     while( sm.next(lbda,lf,p,d) ){
         d_prime = find_dual_solution(lbda);
         sm.improvement_check(lf,d,d_prime);
@@ -117,7 +119,10 @@ solution_pair SimpleDualSolver::solve_lagrangean_subproblem(Formulation& f, Lagr
         d = d_prime;
         p = update_primal(p,d,p_use_lagrangean_costs);   
 
-        
+        do{
+            still_extending = pool.extend_pool();
+        }while( !pool.is_pool_updated() && still_extending );
+
 
         if( sm.after_check(p,d)==false ){
             return d;

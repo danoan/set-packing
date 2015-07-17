@@ -26,6 +26,7 @@ void PoolClique::pop_clique(){
 }
 
 bool PoolClique::extend_pool(){
+    _pool_updated=false;
     if(_cliques_queue.size()==0){
         return false;
     }
@@ -67,7 +68,7 @@ bool PoolClique::extend_pool(){
         //I'm not able to extend this clique, so it is maximal
         ci.set_as_maximal();
         pop_clique();
-        add_clique(ci);
+        // add_clique(ci);
     }else{
         pop_clique();        
 
@@ -76,6 +77,7 @@ bool PoolClique::extend_pool(){
             ci = temp_cg.create_clique_and_constraint( ci, vertice_marked);    
 
             add_clique(ci);
+            _pool_updated = true;
         }
 
         temp_clique.clear();

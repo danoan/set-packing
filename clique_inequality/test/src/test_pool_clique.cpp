@@ -37,6 +37,20 @@ void test_extend_pool(){
     printf("%s",f.to_str().c_str());
 }
 
+void test_extend_pool_2(){
+    Formulation f = read_formulation("../pb_100rnd0100.dat");
+    printf("%s\n",f.to_str().c_str());
+    PoolClique p(f);
+   
+    do{        
+        print_current_pool(p);    
+    }while(p.extend_pool());
+    
+    print_current_pool(p);    
+
+    printf("%s",f.to_str().c_str());
+}
+
 void print_current_pool(PoolClique& p){
     printf("CURRENT POOL\n");
 

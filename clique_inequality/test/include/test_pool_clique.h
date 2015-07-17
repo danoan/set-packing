@@ -10,6 +10,7 @@ typedef std::priority_queue<CliqueInequality, std::vector<CliqueInequality>, cli
 
 void test_pool_clique_check_order();
 void test_extend_pool();
+void test_extend_pool_2();
 std::vector<CliqueInequality> get_unique_cliques(PoolClique& p);
 
 void print_current_pool(PoolClique& p);

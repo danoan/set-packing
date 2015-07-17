@@ -26,6 +26,7 @@ class PoolClique{
 ACCESS_MODE
     Formulation& _f;
     ColisionGraph _cg;
+    bool _pool_updated;
 
     std::priority_queue<CliqueInequality, std::vector<CliqueInequality>, cliquecomp> _cliques_queue;
     std::unordered_set<CliqueInequality> _cliques_access;
@@ -40,6 +41,7 @@ public:
     void pop_clique();
 
     bool extend_pool();
+    inline bool is_pool_updated(){return _pool_updated;};
 };
 
 #endif

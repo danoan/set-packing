@@ -53,9 +53,13 @@ dual_lagrangean_solution SimpleDualSolver::solve(int p_max_N, double p_pi_factor
     solution_pair p = find_primal_solution();    
     solution_pair d = find_dual_solution(lbda);
 
+    printf("RESTRICOES (INICIO): %d\n",_lf.num_constraints());
+
     if(_debug) log_start(_f,_lf,lbda,p,d);    
 
     solve_lagrangean_subproblem(_f,_lf,p,d,lbda,p_max_N, p_pi_factor,p_max_no_improvement,p_use_lagrangean_costs);    
+
+    printf("RESTRICOES (FINAL): %d\n",_lf.num_constraints());
 
     dual_lagrangean_solution s;
     s.p = p;
@@ -110,7 +114,7 @@ solution_pair SimpleDualSolver::solve_lagrangean_subproblem(Formulation& f, Lagr
     solution_pair d_prime;   
     SubgradientMethod sm(lf,p_max_N,p_pi_factor,p_max_no_improvement,_debug);
 
-    bool still_extending=true;
+    // bool still_extending=true;
     PoolClique pool(lf);
     while( sm.next(lbda,lf,p,d) ){
         d_prime = find_dual_solution(lbda);
@@ -119,10 +123,14 @@ solution_pair SimpleDualSolver::solve_lagrangean_subproblem(Formulation& f, Lagr
         d = d_prime;
         p = update_primal(p,d,p_use_lagrangean_costs);   
 
-        do{
-            still_extending = pool.extend_pool();
-        }while( !pool.is_pool_updated() && still_extending );
+        // do{
+        //     still_extending = pool.extend_pool();
+        // }while( !pool.is_pool_updated() && still_extending );
 
+        int num_new_constraints = pool.extend_pool(d);
+        for(int i=0;i<num_new_constraints;i++){
+            lbda.push_back(1);
+        }        
 
         if( sm.after_check(p,d)==false ){
             return d;

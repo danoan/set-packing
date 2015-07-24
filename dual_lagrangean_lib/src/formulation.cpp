@@ -98,6 +98,10 @@ void Formulation::copy_formulation(const Formulation& p_f){
     _objective_type = p_f._objective_type;      
 }
 
+void Formulation::add_new_constraint(ConstraintLine* cl){
+    _constraints[cl->index()] = cl;
+}
+
 ConstraintLine* Formulation::replace_constraint(vector<ConstraintMember>& vec_cm, ConstraintLine* cl){
     cl->replace(vec_cm);
     return cl;

@@ -26,24 +26,23 @@ class PoolClique{
 ACCESS_MODE
     Formulation& _f;
     ColisionGraph _cg;
-    int _replaced_constraints;
-    int _new_constraints;
+    
+    bool _pool_updated;
 
+    std::priority_queue<CliqueInequality, std::vector<CliqueInequality>, cliquecomp> _cliques_queue;
     std::unordered_set<CliqueInequality> _cliques_access;
 
-    CliqueInequality create_clique_inequality(ConstraintLine** cl, std::vector<int>& vertices_in_clique);
-    std::vector<int> find_clique(int seed, ColisionGraph temp_cg, std::vector<bool> vertice_marked);
+    CliqueInequality create_clique();
 
 public:
     PoolClique(Formulation& p_f);
 
     bool add_clique(ConstraintLine* p_cl, int p_num_variables);
     bool add_clique(CliqueInequality& p_ci);
+    void pop_clique();
 
-    int extend_pool(solution_pair& xk);
-
-    inline int replaced_constraints(){return _replaced_constraints;};
-    inline int new_constraints(){return _new_constraints;};
+    bool extend_pool();
+    inline bool is_pool_updated(){return _pool_updated;};
 };
 
 #endif

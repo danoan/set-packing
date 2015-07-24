@@ -66,7 +66,7 @@ void single_input(InputType input_type, int max_N, double pi_factor, double max_
     
     printf("FINAL ANSWER\n");
     print_solution("PRIMAL",s.p);
-    print_solution("DUAL",s.d);    
+    print_solution("DUAL",s.d);       
 }
 
 int main(int argc, char* argv[]){

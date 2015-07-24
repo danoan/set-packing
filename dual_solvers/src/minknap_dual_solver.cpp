@@ -230,7 +230,8 @@ solution_pair MinknapDualSolver::solve_lagrangean_subproblem(Formulation& f, Lag
     SubgradientMethod sm(lf,p_max_N,p_pi_factor,p_max_no_improvement,_debug);
 
     PoolClique pool(lf);
-    bool still_extending = true;
+    // bool still_extending = true;
+    printf("RESTRICOES (INICIO): %d\n",_lf.num_constraints());    
     while( sm.next(lbda,lf,p,d) ){
         d_prime = find_dual_solution(lbda);
         sm.improvement_check(lf,d,d_prime);
@@ -238,14 +239,20 @@ solution_pair MinknapDualSolver::solve_lagrangean_subproblem(Formulation& f, Lag
         d = d_prime;
         p = update_primal(p,d,p_use_lagrangean_costs);   
 
-        do{
-            still_extending = pool.extend_pool();
-        }while( !pool.is_pool_updated() && still_extending);
+        // do{
+        //     still_extending = pool.extend_pool();
+        // }while( !pool.is_pool_updated() && still_extending);        
+
+        int num_new_constraints = pool.extend_pool(d);
+        for(int i=0;i<num_new_constraints;i++){
+            lbda.push_back(1);
+        }
 
         if( sm.after_check(p,d)==false ){
             return d;
         }
     }
+    printf("RESTRICOES (FINAL): %d\t REPLACED:%d\n",_lf.num_constraints(),pool.replaced_constraints());
 
     return d;
 }

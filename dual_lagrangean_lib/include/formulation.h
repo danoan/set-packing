@@ -42,6 +42,7 @@ public:
     inline int objective_type(){ return _objective_type; };
 
     ConstraintLine* replace_constraint(vector<ConstraintMember>& vec_cm, ConstraintLine* cl);
+    void add_new_constraint(ConstraintLine* cl);
 
     virtual double compute(vector<double> p_x);    
     virtual bool check_constraints(vector<double> p_x);    

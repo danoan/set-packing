@@ -1,66 +1,66 @@
 #include "test_pool_clique.h"
 
-void test_pool_clique_check_order(){
-    Formulation f = read_formulation("../test_input_1");
-    PoolClique p(f);
-
-    std::vector<int> degrees;
-    clique_queue cq = p._cliques_queue;
-    while(!cq.empty()){        
-        degrees.push_back( cq.top().active_variables() );
-        cq.pop();
-    }
-
-    int last=-1;
-    for(int i=0;i<degrees.size();i++){
-        if(degrees[i]>=last){
-            last = degrees[i];
-        }else{
-            FAILED("test_pool_clique_check_order");
-        }
-    }
-
-    PASSED("test_pool_clique_check_order");
-}
-
 void test_extend_pool(){
     Formulation f = read_formulation("../test_input_1");
     printf("%s\n",f.to_str().c_str());
     PoolClique p(f);
+
+    solution_pair s;
+    for(int i=0;i<f.c().size();i++){
+        s.x.push_back(0);
+    }
+
+    s.x[2] = 1;
+    s.x[4] = 1;
+    s.x[6] = 1;
    
-    do{        
-        print_current_pool(p);    
-    }while(p.extend_pool());
-    
-    print_current_pool(p);    
+    p.extend_pool(s);
 
     printf("%s",f.to_str().c_str());
+
+    PASSED("test_extend_pool");
 }
 
 void test_extend_pool_2(){
-    Formulation f = read_formulation("../pb_100rnd0100.dat");
+    Formulation f = read_formulation("../test_input_1");
     printf("%s\n",f.to_str().c_str());
     PoolClique p(f);
+
+    solution_pair s;
+    for(int i=0;i<f.c().size();i++){
+        s.x.push_back(0);
+    }
+
+    s.x[0] = 1;
+    s.x[1] = 1;
+    s.x[2] = 1;
+    s.x[3] = 1;
+    s.x[5] = 1;
    
-    do{        
-        print_current_pool(p);    
-    }while(p.extend_pool());
-    
-    print_current_pool(p);    
+    p.extend_pool(s);
 
     printf("%s",f.to_str().c_str());
+
+    PASSED("test_extend_pool_2");
 }
 
-void print_current_pool(PoolClique& p){
-    printf("CURRENT POOL\n");
+void test_extend_pool_3(){
+    Formulation f = read_formulation("../test_input_1");
+    printf("%s\n",f.to_str().c_str());
+    PoolClique p(f);
 
-    CliqueInequality ci;
-    clique_queue temp = p._cliques_queue;
-    while(!temp.empty()){
-        ci = temp.top();
-        temp.pop();
-        for(member_it it=ci.begin();it!=ci.end();it++){
-            printf("%d ", (*it).index);
-        }printf("\n");        
+    solution_pair s;
+    for(int i=0;i<f.c().size();i++){
+        s.x.push_back(0);
     }
+
+    s.x[0] = 1;
+    s.x[1] = 1;
+    s.x[2] = 1;
+   
+    p.extend_pool(s);
+
+    printf("%s",f.to_str().c_str());
+    
+    PASSED("test_extend_pool_3");
 }

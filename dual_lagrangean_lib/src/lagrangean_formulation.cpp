@@ -103,7 +103,13 @@ void LagrangeanFormulation::update_lagrangean_costs(){
             _lagrangean_costs[rm.index]+= -(_lbda[i]*rm.cost);
         }
     }
+}
 
+void LagrangeanFormulation::add_new_constraint(ConstraintLine* cl){
+    Formulation::add_new_constraint(cl);
+    for(member_it m_it=cl->begin();m_it!=cl->end();m_it++){
+        _restr_var_appears[ m_it->index ].insert(cl->index());
+    }
 }
 
 ConstraintLine* LagrangeanFormulation::replace_constraint(vector<ConstraintMember>& vec_cm, ConstraintLine* cl){
@@ -235,5 +241,5 @@ string LagrangeanFormulation::to_str(){
     // }
     // s << "\n";
 
-    return s.str();
+    return Formulation::to_str();
 }

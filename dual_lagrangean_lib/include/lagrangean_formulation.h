@@ -46,6 +46,7 @@ public:
     inline int num_dual_constraints(){ return _dual_constraints.size(); }
 
     ConstraintLine* replace_constraint(vector<ConstraintMember>& vec_cm, ConstraintLine* cl);
+    void add_new_constraint(ConstraintLine* cl);
 
     inline line_it begin(){ return _primal_constraints.begin(); };
     inline line_it end(){ return _primal_constraints.end(); };    

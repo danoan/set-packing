@@ -14,10 +14,12 @@ int main(){
     test_colision_graph_creation();
     test_colision_graph_reduce();
 
-    test_pool_clique_check_order();
+    // test_pool_clique_check_order();
     test_extend_pool();
-
     test_extend_pool_2();
+    test_extend_pool_3();
+
+    // test_extend_pool_2();
 
     return 0;
 }

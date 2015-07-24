@@ -27,12 +27,17 @@ ACCESS_MODE
 
 public:
     ColisionGraph(Formulation& p_f);    
-    void reduce(int p_vertice_index);
+    void reduce(const int& p_vertice_index);
+    void subgraph(solution_pair& xk, const DynamicBitCluster& bit_subgraph);
+    void remove(const std::vector<int>& vertices_in_clique);
+
     inline int num_vertices(){return _f.c().size();};
 
     int max_degree(int& max_degree, std::vector<bool>& vertice_marked);
+    int max_degree(int& max_degree, DynamicBitCluster& bit_subgraph);
 
     CliqueInequality create_clique_and_constraint(const CliqueInequality& ci, std::vector<bool>& vertice_marked);
+    CliqueInequality replace_constraint(const CliqueInequality& new_ci, const CliqueInequality& previous_ci);
     CliqueInequality check_new_clique(const CliqueInequality& ci, std::vector<bool>& vertice_marked);
 };
 

@@ -37,7 +37,7 @@ void ColisionGraph::create_all_edges(std::vector<int>& vars_indexes){
     }
 }
 
-void ColisionGraph::reduce(int p_vertice_index){
+void ColisionGraph::reduce(const int& p_vertice_index){
     DynamicBitCluster bit_reduce = _vertice_links[p_vertice_index];
     bit_reduce.set(p_vertice_index);
 
@@ -48,6 +48,32 @@ void ColisionGraph::reduce(int p_vertice_index){
             _vertice_links[i] << bit_reduce;    
         }        
     }
+}
+
+void ColisionGraph::subgraph(solution_pair& xk, const DynamicBitCluster& bit_subgraph){
+    //Variables not set to one are discarded and the other are reduced
+    for(int i=0;i<xk.x.size();i++){
+        if(xk.x[i]==1){
+            _vertice_links[i] << bit_subgraph;
+        }else{
+            _vertice_links[i] << 0;
+        }
+    }
+}
+
+void ColisionGraph::remove(const std::vector<int>& vertices_in_clique){
+    DynamicBitCluster bit_remove;
+    bit_remove.resize_and_clear(num_vertices(),(1<<(BITCLUSTER_SIZE) )-1);
+
+    for(int i=0;i<vertices_in_clique.size();i++){
+        bit_remove.reset( vertices_in_clique[i] );
+        _vertice_links[ vertices_in_clique[i] ] << 0;
+    }
+
+    for(int i=0;i<num_vertices();i++){
+        _vertice_links[i] << bit_remove;
+    }
+
 }
 
 int ColisionGraph::max_degree(int& max_degree, std::vector<bool>& vertice_marked){
@@ -91,4 +117,15 @@ CliqueInequality ColisionGraph::create_clique_and_constraint(const CliqueInequal
     }
     
     return CliqueInequality(_f.replace_constraint(vec_cm,ci.constraint()),_f.c().size());
+}
+
+CliqueInequality ColisionGraph::replace_constraint(const CliqueInequality& new_ci, const CliqueInequality& previous_ci){
+    std::vector<ConstraintMember> vec_cm;
+    ConstraintLine* cl = new_ci.constraint();
+
+    for(member_it m_it=cl->begin();m_it!=cl->end();m_it++){
+        vec_cm.push_back(*m_it);
+    }
+    
+    return CliqueInequality( _f.replace_constraint(vec_cm,previous_ci.constraint()),_f.c().size() );
 }

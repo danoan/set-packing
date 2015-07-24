@@ -13,13 +13,20 @@ int DynamicBitCluster::add(int p_bit){
     return _n++;
 }
 
-void DynamicBitCluster::resize_and_clear(int p_num_bits){
+void DynamicBitCluster::resize_and_clear(size_t p_num_bits){
+    resize_and_clear(p_num_bits,0);
+}
+
+void DynamicBitCluster::resize_and_clear(size_t p_num_bits, unsigned long long value){
     //It clears everyting
     int _vector_size = (int) ceil(1.0*p_num_bits/BITCLUSTER_SIZE);
     _bit_cluster_vector.resize(_vector_size);
     for(int i=0;i<_vector_size;i++){
-        _bit_cluster_vector[i] = bit_cluster(0);
+        _bit_cluster_vector[i] = bit_cluster(value);
     }
+
+    _n = p_num_bits;
+    _curr_bit_cluster = _vector_size-1;
 }
 
 DynamicBitCluster& DynamicBitCluster::operator<<(const DynamicBitCluster& p_dy){

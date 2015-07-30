@@ -11,7 +11,8 @@
 #include <stdio.h>
 
 #include "types.h"
-#include "formulation.h"
+#include "lagrangean_formulation.h"
+#include "solution.h"
 #include "dyn_bit_cluster.h"
 #include "constants.h"
 #include "clique_inequality.h"
@@ -19,16 +20,16 @@
 
 class ColisionGraph{
 ACCESS_MODE
-    Formulation& _f;    //Used to create the Ultimate ColisionGraph for this formulation
+    LagrangeanFormulation& _f;    //Used to create the Ultimate ColisionGraph for this formulation
 
     std::vector<DynamicBitCluster> _vertice_links;
 
     void create_all_edges(std::vector<int>& vars_indexes);
 
 public:
-    ColisionGraph(Formulation& p_f);    
+    ColisionGraph(LagrangeanFormulation& p_f);    
     void reduce(const int& p_vertice_index);
-    void subgraph(solution_pair& xk, const DynamicBitCluster& bit_subgraph);
+    void subgraph(Solution& xk, const DynamicBitCluster& bit_subgraph);
     void remove(const std::vector<int>& vertices_in_clique);
 
     inline int num_vertices(){return _f.c().size();};

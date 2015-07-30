@@ -1,6 +1,9 @@
 #include "minknap_dual_solver.h"
 
-MinknapDualSolver::MinknapDualSolver(Formulation& p_f, bool p_debug): _debug(p_debug){
+MinknapDualSolver::MinknapDualSolver(Formulation& p_f, bool p_debug): 
+                                    DualLagrangeanMethod(p_f.c().size(), p_f.objective_type()),
+                                    _debug(p_debug){
+                                        
     _primal_knapsack_restriction = get_knapsack_constraint(p_f);      
 
     _f = Formulation(p_f);
@@ -10,26 +13,17 @@ MinknapDualSolver::MinknapDualSolver(Formulation& p_f, bool p_debug): _debug(p_d
     _lagrangean_kc = compute_benefit_cost(*_primal_knapsack_restriction,_lf.lagrangean_costs());    
 }
 
-dual_lagrangean_solution MinknapDualSolver::solve(int p_max_N, double p_pi_factor, 
+std::pair<Solution,Solution> MinknapDualSolver::solve(int p_max_N, double p_pi_factor, 
                          double p_max_no_improvement, bool p_use_lagrangean_costs){
-    vector<double> lbda;
-    for(int i=0;i<_f.num_constraints();i++){
-        lbda.push_back(1);
-    }    
 
-    solution_pair p = find_primal_solution();    
-    solution_pair d = find_dual_solution(lbda);
+    find_primal_solution();    
+    find_dual_solution();
 
-    if(_debug) log_start(_f,_lf,lbda,p,d);    
+    if(_debug) log_start(_f,_lf,_primal,_dual);    
 
-    solve_lagrangean_subproblem(_f,_lf,p,d,lbda,p_max_N, p_pi_factor, p_max_no_improvement, p_use_lagrangean_costs);    
+    solve_lagrangean_subproblem(_f,_lf,p_max_N, p_pi_factor, p_max_no_improvement, p_use_lagrangean_costs);    
 
-    dual_lagrangean_solution s;
-    s.p = p;
-    s.d = d;
-    s.lbda = lbda;
-
-    return s;    
+    return std::make_pair(_primal,_dual);    
 }
 
 ConstraintLine* MinknapDualSolver::get_knapsack_constraint(Formulation& f){
@@ -67,37 +61,20 @@ ConstraintLine* MinknapDualSolver::get_knapsack_constraint(Formulation& f){
     return backpack_restriction;
 }
 
-solution_pair MinknapDualSolver::find_primal_solution(){
-    solution_pair s = find_primal_int_solution_by_benefit_cost_heuristic(_f, _primal_kc);
-    s.vx = _f.compute(s.x);
-
-    return s;
+void MinknapDualSolver::find_primal_solution(){
+    find_primal_int_solution_by_benefit_cost_heuristic(_f, _primal_kc,_primal);
+    _primal.vx( _f.compute(_primal.x()) );
 }
 
-solution_pair MinknapDualSolver::update_primal(solution_pair& p, solution_pair& d, bool p_use_lagrangean_costs){
-    solution_pair s;
-
+void MinknapDualSolver::update_primal(bool p_use_lagrangean_costs){
     if(p_use_lagrangean_costs){
         _lagrangean_kc = compute_benefit_cost(*_primal_knapsack_restriction,_lf.lagrangean_costs());
-        s = find_primal_int_feasible_solution_from_dual(d,_f,_lagrangean_kc);
+        find_primal_int_feasible_solution_from_dual(_dual,_f,_lagrangean_kc,_primal);
     }else{
-        s = find_primal_int_feasible_solution_from_dual(d,_f,_primal_kc);
+        find_primal_int_feasible_solution_from_dual(_dual,_f,_primal_kc,_primal);
     }
 
-    s.vx = _f.compute(s.x);        
-
-    if(_f.objective_type()==MAX_TYPE){
-        if(p.vx>=s.vx){
-            s = p;
-        }
-    }else{
-        if(p.vx<=s.vx){
-            s = p;
-        }
-    }
-    
-
-    return s;
+    _primal.vx( _f.compute(_primal.x()) );        
 }
 
 int MinknapDualSolver::active_constraints_for_vars(vector<int>& Ix){
@@ -126,12 +103,10 @@ int MinknapDualSolver::active_constraints_for_vars(vector<int>& Ix){
     return k;
 }
 
-solution_pair MinknapDualSolver::find_dual_solution(vector<double>& lbda){
-    _lf.lbda(lbda);    
-    
+void MinknapDualSolver::find_dual_solution(){    
     int lift_factor = 1000;
     long value;
-    solution_pair d;
+
     vector<int> Ix;
 
     //Store the variables indexes that has non-negative lagrangean costs
@@ -199,9 +174,9 @@ solution_pair MinknapDualSolver::find_dual_solution(vector<double>& lbda){
         j=0;
         for(int i=0;i<_lf.lagrangean_costs().size();i++){            
             if(j>=m or Ix[j]!=i){
-                d.x.push_back(0.0);
+                _dual.set_component(i,0);
             }else{
-                d.x.push_back( (double) x_line[j++]);
+                _dual.set_component(i, (double) x_line[j++]);
             }
         }                 
 
@@ -210,49 +185,51 @@ solution_pair MinknapDualSolver::find_dual_solution(vector<double>& lbda){
         //     printf("VALUE KNAP: %.2f\n",_lf.compute(d_knap.x));
 
         // printf("VALUE MINKNAP: %.2f\n",_lf.compute(d.x));        
-        d.vx = _lf.compute(d.x);    
+        _dual.vx( _lf.compute(_dual.x()) );    
 
         delete[] costs;
         delete[] weights;
         delete[] x_line;
 
     }else{       
-        d = find_int_optimal_solution_lagrangean_subproblem(_lf);
+        find_int_optimal_solution_lagrangean_subproblem(_lf,_dual);
     }
-    
-    return d;
 }
 
-solution_pair MinknapDualSolver::solve_lagrangean_subproblem(Formulation& f, LagrangeanFormulation& lf, solution_pair& p,
-                                  solution_pair& d, vector<double>& lbda, int p_max_N, double p_pi_factor, 
-                                  double p_max_no_improvement, bool p_use_lagrangean_costs){
-    solution_pair d_prime;   
-    SubgradientMethod sm(lf,p_max_N,p_pi_factor,p_max_no_improvement,_debug);
+void MinknapDualSolver::solve_lagrangean_subproblem(Formulation& f, LagrangeanFormulation& lf, int p_max_N, 
+                                double p_pi_factor, double p_max_no_improvement, bool p_use_lagrangean_costs){
 
+
+    SubgradientMethod sm(lf,p_max_N,p_pi_factor,p_max_no_improvement,_debug);
     PoolClique pool(lf);
     // bool still_extending = true;
     printf("RESTRICOES (INICIO): %d\n",_lf.num_constraints());    
-    while( sm.next(lbda,lf,p,d) ){
-        d_prime = find_dual_solution(lbda);
-        sm.improvement_check(lf,d,d_prime);
+    while( sm.next(lf,_primal,_dual) ){
+        find_dual_solution();        
+        sm.improvement_check(lf,_dual);
 
-        d = d_prime;
-        p = update_primal(p,d,p_use_lagrangean_costs);   
+        update_primal(p_use_lagrangean_costs);   
 
         // do{
         //     still_extending = pool.extend_pool();
         // }while( !pool.is_pool_updated() && still_extending);        
 
-        int num_new_constraints = pool.extend_pool(d);
-        for(int i=0;i<num_new_constraints;i++){
-            lbda.push_back(1);
+        pool.extend_pool(_dual);
+
+        if(_debug){ 
+            printf("%s\n",sm.log().c_str());
+            
+            print_vector("LAGRANGEAN COSTS", lf.lagrangean_costs());
+            print_solution("PRIMAL",_primal);
+            print_solution("DUAL",_dual);
         }
 
-        if( sm.after_check(p,d)==false ){
-            return d;
+        if( sm.after_check(_primal,_dual)==false ){
+            break;
         }
     }
     printf("RESTRICOES (FINAL): %d\t REPLACED:%d\n",_lf.num_constraints(),pool.replaced_constraints());
+    printf("NUM_IT: %d\nBEST DUAL BOUND:%.4lf\n",sm.iterations(),sm.best_bound());
 
-    return d;
+    return;
 }

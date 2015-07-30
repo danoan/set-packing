@@ -1,13 +1,14 @@
 #include "clique_inequality.h"
 
 CliqueInequality::CliqueInequality():_total_active_variables(0),_index_sum_active_variables(0),
-                                  _maximal_clique(false),_total_variables(0){
+                                  _maximal_clique(false),_total_variables(0),_group_number(3){
 
 }
 
 CliqueInequality::CliqueInequality(ConstraintLine* p_cl, int p_total_variables):_cl(p_cl),
                                   _total_active_variables(0),_index_sum_active_variables(0),
-                                  _maximal_clique(false),_total_variables(p_total_variables){
+                                  _maximal_clique(false),_total_variables(p_total_variables),
+                                  _group_number(3){
     int j=0;
 
     int total_bit_cluster = (int) ceil(1.0*p_total_variables/BITCLUSTER_SIZE);

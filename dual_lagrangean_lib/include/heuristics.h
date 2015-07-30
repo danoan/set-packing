@@ -7,6 +7,7 @@
 
 #include "types.h"
 #include "formulation.h"
+#include "solution.h"
 #include "lagrangean_formulation.h"
 #include "constraint_line.h"
 
@@ -20,10 +21,10 @@ bool compare_benefit_cost(benefit_cost_pair a, benefit_cost_pair b);
 
 vector<benefit_cost_pair> compute_benefit_cost(ConstraintLine& br, vector<double>& cost_vector);
 
-solution_pair find_primal_int_solution_by_benefit_cost_heuristic(Formulation& f, vector<benefit_cost_pair>& bc_vector);
-solution_pair find_primal_int_feasible_solution_from_dual(solution_pair& d, Formulation& f,vector<benefit_cost_pair>& bc_vector);
+void find_primal_int_solution_by_benefit_cost_heuristic(Formulation& f, vector<benefit_cost_pair>& bc_vector, Solution& d);
+void find_primal_int_feasible_solution_from_dual(Solution& d, Formulation& f,vector<benefit_cost_pair>& bc_vector, Solution& p);
 
-solution_pair find_int_optimal_solution_lagrangean_subproblem(LagrangeanFormulation& lf);
+void find_int_optimal_solution_lagrangean_subproblem(LagrangeanFormulation& lf, Solution& d);
 
 
 #endif

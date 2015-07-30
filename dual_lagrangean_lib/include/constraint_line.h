@@ -20,14 +20,16 @@ private:
     double _rhs;
     int _op;
     int _id;
+    double _lbda;
+    bool _original;
     
 
     void copy_line(ConstraintLine* p_rl);
 
 public:
-    ConstraintLine(){ _id = _next_id++;};
+    ConstraintLine(bool p_original=false):_original(p_original){ _id = _next_id++;};
     ConstraintLine(ConstraintLine* p_rl);
-    ConstraintLine(std::vector< ConstraintMember > &p_members, double p_rhs, int p_op);
+    ConstraintLine(std::vector< ConstraintMember > &p_members, double p_rhs, int p_op, bool p_original=false);
 
     inline double rhs(){return _rhs;}
     inline void rhs(double p_rhs){ _rhs=p_rhs;}
@@ -35,7 +37,11 @@ public:
     inline int op(){return _op;}
     inline void op(int p_op){_op=p_op;}
 
+    inline double lbda(){ return _lbda; };
+    inline void lbda(double lbda){ _lbda=lbda; };
+
     inline int index() const{return _id;}
+    inline bool original() const{ return _original; }
 
     inline void add(ConstraintMember& p_rlm){ _members.push_back(p_rlm); }
     inline size_t size(){return _members.size();};

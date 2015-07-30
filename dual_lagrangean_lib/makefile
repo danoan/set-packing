@@ -22,10 +22,10 @@ CCFLAGS = -std=c++11 -O3
 
 all: lib
 
-debug: CCFLAGS = -std=c++11 -g -O1
+debug: CCFLAGS = -std=c++11 -g
 debug: lib
 
-lib: check formulation.o heuristics.o lagrangean_formulation.o dual_lagrangean_method.o util.o subgradient_method.o constraint_line.o io.o config.o
+lib: check formulation.o heuristics.o lagrangean_formulation.o dual_lagrangean_method.o util.o subgradient_method.o subgradient_element.o constraint_line.o io.o config.o solution.o
 	ar rc $(lib_path)/libpack.a $(object_path)/*.o
 
 test: lib
@@ -54,8 +54,14 @@ lagrangean_formulation.o: check
 dual_lagrangean_method.o: check
 	g++ -I $(header_path) -o $(object_path)/dual_lagrangean_method.o -c $(source_path)/dual_lagrangean_method.cpp $(CCFLAGS)
 
+solution.o: check
+	g++ -I $(header_path) -o $(object_path)/solution.o -c $(source_path)/solution.cpp $(CCFLAGS)
+
 subgradient_method.o: check
 	g++ -I $(header_path) -o $(object_path)/subgradient_method.o -c $(source_path)/subgradient_method.cpp $(CCFLAGS)
+
+subgradient_element.o: check
+	g++ -I $(header_path) -o $(object_path)/subgradient_element.o -c $(source_path)/subgradient_element.cpp $(CCFLAGS)
 
 constraint_line.o: check
 	g++ -I $(header_path) -o $(object_path)/constraint_line.o -c $(source_path)/constraint_line.cpp $(CCFLAGS)

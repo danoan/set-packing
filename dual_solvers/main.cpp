@@ -54,7 +54,7 @@ void single_input(InputType input_type, int max_N, double pi_factor, double max_
         exit(2);
     }
 
-    dual_lagrangean_solution s;
+    std::pair<Solution,Solution> s;
 
     if(solver==NO_CONSTRAINTS){
         SimpleDualSolver pls(f,Config::debug);    
@@ -65,8 +65,13 @@ void single_input(InputType input_type, int max_N, double pi_factor, double max_
     }
     
     printf("FINAL ANSWER\n");
-    print_solution("PRIMAL",s.p);
-    print_solution("DUAL",s.d);       
+    print_vector("PRIMAL",s.first.best_solution());
+    printf("\nVALUE: %.4lf", s.first.best_value());
+    printf("\n");
+    
+    print_vector("DUAL",s.second.best_solution());
+    printf("\nVALUE: %.4lf", s.second.best_value());    
+    printf("\n");
 }
 
 int main(int argc, char* argv[]){

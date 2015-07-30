@@ -21,6 +21,7 @@ ACCESS_MODE
     int _total_active_variables;
     int _index_sum_active_variables;
     int _total_variables;
+    int _group_number;
 
     std::vector<bit_cluster> _variables_in_use;    //Which variable belongs to this constraint
 
@@ -33,6 +34,9 @@ public:
     inline int index_sum_active() const{return _index_sum_active_variables;}
     inline int set_as_maximal(){ _maximal_clique=true; };
     inline int total_variables() const{ return _total_variables;};
+
+    inline int group_number() const{ return _group_number; };
+    inline void set_group(int group_number){ _group_number = group_number; };
 
     inline bool is_maximal() const{ return _maximal_clique; }
 

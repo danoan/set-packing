@@ -4,6 +4,7 @@
 #include <ctime>
 
 #include "heuristics.h"
+#include "solution.h"
 
 
 void print_results(int** sets,int num_sets,int num_elements){
@@ -40,11 +41,11 @@ void create_example(int num_elements, int num_sets, int** elements, int*** sets)
 }
 
 
-void print_solutions(vector<solution_pair> solutions){
+void print_solutions(vector<Solution> solutions){
     for(int i=0;i<solutions.size();i++){
         printf("Solution %d: ", i);
-        for(int j=0;j<solutions[i].x.size();j++){
-            printf("%.2lf ",solutions[i].x[j]);
+        for(int j=0;j<solutions[i].num_components();j++){
+            printf("%.2lf ",solutions[i].x(j));
         }
         printf("\n");
     }
@@ -52,22 +53,22 @@ void print_solutions(vector<solution_pair> solutions){
 
 
 //Set_Packing: Each xj variable represents the use of subset xj
-double objective_function(solution_pair s){
+double objective_function(Solution& s){
     double m=0;
-    for(int i=0;i<s.x.size();i++){
-        m+=s.x[i];
+    for(int i=0;i<s.num_components();i++){
+        m+=s.x(i);
     }
     return m;
 }
 
 //xj = 1 means the subset j is being used on the solution
 //If one element appears more than once on the subsets used, the solution is not valid
-bool check_constraints(solution_pair s,int** sets,int num_elements,int num_sets){
+bool check_constraints(Solution& s,int** sets,int num_elements,int num_sets){
     int* elements_used = (int*) calloc(num_elements,sizeof(int));
     if(elements_used==NULL) exit(1);
 
     for(int j=0;j<num_sets;j++){
-        if(s.x[j]==1){
+        if(s.x(j)==1){
             for(int i=0;i<num_elements;i++){
                 if(sets[i][j]==1 && elements_used[i]==1){
                     return false;
@@ -84,7 +85,7 @@ bool check_constraints(solution_pair s,int** sets,int num_elements,int num_sets)
     free(elements_used);
 }
 
-vector<solution_pair> enumerate_valid_solutions(int num_sets){
+vector<Solution> enumerate_valid_solutions(int num_sets){
     int* power_2 = (int*) malloc(sizeof(int)*num_sets);
     if(power_2==NULL) exit(1);
 
@@ -95,13 +96,13 @@ vector<solution_pair> enumerate_valid_solutions(int num_sets){
 
     int num_solutions = power_2[num_sets-1]*2;
 
-    vector<solution_pair> solutions;
+    vector<Solution> solutions;
     int cur_n;
     for(int n=0;n<num_solutions;n++){
-        solution_pair s;
+        Solution s(num_sets);
         cur_n = n;
         for(int i=num_sets-1;i>=0;i--){
-            s.x.push_back( cur_n/power_2[i] );
+            s.set_component(i, cur_n/power_2[i] );
             cur_n-= (cur_n/power_2[i])*power_2[i];
         }
         solutions.push_back(s);
@@ -112,22 +113,22 @@ vector<solution_pair> enumerate_valid_solutions(int num_sets){
     return solutions;
 }
 
-vector<solution_pair> get_optimal_solution(vector<solution_pair> all, int** sets, int num_elements, int num_sets){
+vector<Solution> get_optimal_solution(vector<Solution> all, int** sets, int num_elements, int num_sets){
     double max = 0;
-    vector<solution_pair> max_solutions;
+    vector<Solution> max_solutions;
 
     double v;
     for(int i=0;i<all.size();i++){
         if(check_constraints(all[i],sets,num_elements,num_sets)==false) continue;
-        all[i].vx = objective_function(all[i]);
-        if(all[i].vx>max){
-            max=all[i].vx;
+        all[i].vx( objective_function(all[i]) );
+        if(all[i].vx()>max){
+            max=all[i].vx();
         }
     }
 
     for(int i=0;i<all.size();i++){    
         if(check_constraints(all[i],sets,num_elements,num_sets)==false) continue;
-        if(all[i].vx==max){
+        if(all[i].vx()==max){
             max_solutions.push_back(all[i]);
         }
     }
@@ -135,12 +136,12 @@ vector<solution_pair> get_optimal_solution(vector<solution_pair> all, int** sets
     return max_solutions;
 }
 
-void create_input(int** sets, int num_elements, int num_sets, solution_pair optimal_solution, int version){
+void create_input(int** sets, int num_elements, int num_sets, Solution optimal_solution, int version){
     char name[1024];
     char buffer[2<<16];
     int total_written=0;
 
-    sprintf(name,"%d_elem_%d_sets_sol_%d_version_%d",num_elements,num_sets,(int)(optimal_solution.vx),version);
+    sprintf(name,"%d_elem_%d_sets_sol_%d_version_%d",num_elements,num_sets,(int)(optimal_solution.vx()),version);
     
     total_written += sprintf( (buffer+total_written),"%d\n%d\nmax\n",num_elements,num_sets); //num_constraints,num_variables
     for(int j=0;j<num_sets;j++){
@@ -190,11 +191,11 @@ int main(int argc, char* argv[]){
 
     print_results(sets,num_sets,num_elements);
 
-    vector<solution_pair> solutions = enumerate_valid_solutions(num_sets);
+    vector<Solution> solutions = enumerate_valid_solutions(num_sets);
     
-    vector<solution_pair> optimal_solutions = get_optimal_solution(solutions,sets,num_elements,num_sets);
+    vector<Solution> optimal_solutions = get_optimal_solution(solutions,sets,num_elements,num_sets);
     if(optimal_solutions.size()>0){
-        printf("OPTIMAL SOLUTIONS (%.2lf)\n",optimal_solutions[0].vx);
+        printf("OPTIMAL SOLUTIONS (%.2lf)\n",optimal_solutions[0].vx());
         print_solutions(optimal_solutions);
         create_input(sets,num_elements,num_sets,optimal_solutions[0],1);
     }else{

@@ -4,7 +4,8 @@
 
 void test_colision_graph_creation(){
     Formulation f = read_formulation("../test_input_3");
-    ColisionGraph cg(f);
+    LagrangeanFormulation lf(f);
+    ColisionGraph cg(lf);
 
     //Testes if the degree count of each vertex is corrected
     int count_expected_result[] = {3,4,0,4,0,4,3,0,0,0};    
@@ -32,7 +33,8 @@ void test_colision_graph_creation(){
 
 void test_colision_graph_reduce(){
     Formulation f = read_formulation("../test_input_3");
-    ColisionGraph cg(f);
+    LagrangeanFormulation lf(f);
+    ColisionGraph cg(lf);
 
     cg.reduce(1);
     for(int i=0;i<7;i++){

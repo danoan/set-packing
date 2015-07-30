@@ -31,17 +31,16 @@ private:
     int active_constraints_for_vars(vector<int>& Ix);
 
     /*Implemented virtual functions*/
-    solution_pair find_primal_solution();
-    solution_pair update_primal(solution_pair& p, solution_pair& d, bool p_use_lagrangean_costs);
-    solution_pair find_dual_solution(vector<double>& lbda);
-    solution_pair solve_lagrangean_subproblem(Formulation& f, LagrangeanFormulation& lf, solution_pair& p,
-                                      solution_pair& d, vector<double>& lbda, int p_max_N, 
-                                      double p_pi_factor, double p_max_no_improvement,
+    void find_primal_solution();
+    void update_primal(bool p_use_lagrangean_costs);
+    void find_dual_solution();
+    void solve_lagrangean_subproblem(Formulation& f, LagrangeanFormulation& lf,
+                                      int p_max_N, double p_pi_factor, double p_max_no_improvement,
                                       bool p_use_lagrangean_costs);
 
 public:
     MinknapDualSolver(Formulation& p_f, bool p_debug);
-    dual_lagrangean_solution solve(int p_max_N, double p_pi_factor, double p_max_no_improvement,
+    std::pair<Solution,Solution> solve(int p_max_N, double p_pi_factor, double p_max_no_improvement,
                              bool p_use_lagrangean_costs);
 };
 

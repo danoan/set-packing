@@ -159,20 +159,60 @@ int read_input(vector< vector<int> >& A_index, vector< vector<double> >& A_cost,
 
 }
 
-void print_solution(string name, solution_pair& s){
-    printf("%s: ", name.c_str());
-    printf("(");
-    for(int i=0;i<s.x.size();i++){
-        printf("%.2lf ",s.x[i]);
+void print_solution(ostringstream& ss, const string& name, Solution& s){
+    ss << name << ": (";
+    std::vector<solution_component> sol = s.x();
+
+    for(int i=0;i<sol.size();i++){
+        ss << sol[i].x << " ";
     }
-    printf(") VALUE: %.4lf\n", s.vx);
+    ss << ") VALUE: " << s.vx() << std::endl; 
 }
 
-void print_vector(string name, vector<double> lbda){
+void print_solution(const string& name, Solution& s){
+    printf("%s: ", name.c_str());
+    printf("(");
+    std::vector<solution_component> sol = s.x();
+
+    for(int i=0;i<sol.size();i++){
+        printf("%.2lf ",sol[i].x);
+    }
+    printf(") VALUE: %.4lf\n", s.vx());
+}
+
+void print_vector(ostringstream& s, const string& name, const vector<double>& lbda){
+    print_vector(s,name,lbda,true);
+}
+
+void print_vector(const string& name, const vector<double>& lbda){
     print_vector(name,lbda,true);
 }
 
-void print_vector(string name, vector<double> lbda, bool short_precision = true){
+void print_vector(const string& name, const vector<solution_component>& comps){
+    printf("%s: (", name.c_str());
+    for(int i=0;i<comps.size();i++){
+        printf("%.4lf, ",comps[i].x);
+    }
+    printf(")\n");
+}
+
+void print_vector(ostringstream& s, const string& name, const vector<solution_component>& comps){
+    s << name << ": (";
+    for(int i=0;i<comps.size();i++){
+        s << comps[i].x << ", ";
+    }
+    s << ")" << std::endl;
+}
+
+void print_vector(ostringstream& s, const string& name, const vector<double>& lbda, bool short_precision){
+    s << name << ": ";
+    for(int i=0;i<lbda.size();i++){
+        s << lbda[i] << " ";
+    }
+    s << ")" << std::endl;
+}
+
+void print_vector(const string& name, const vector<double>& lbda, bool short_precision = true){
     printf("%s: (",name.c_str());
     for(int i=0;i<lbda.size();i++){
         if(short_precision) printf("%.6lf ",lbda[i]);

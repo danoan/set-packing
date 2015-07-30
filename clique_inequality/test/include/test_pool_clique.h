@@ -5,6 +5,7 @@
 
 #include "formulation.h"
 #include "pool_clique.h"
+#include "solution.h"
 
 void test_extend_pool();
 void test_extend_pool_2();

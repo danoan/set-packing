@@ -1,6 +1,6 @@
 #include "colision_graph.h"
 
-ColisionGraph::ColisionGraph(Formulation& p_f):_f(p_f){
+ColisionGraph::ColisionGraph(LagrangeanFormulation& p_f):_f(p_f){
     _vertice_links.resize(_f.c().size());
     for(int i=0;i<_vertice_links.size();i++){
         _vertice_links[i].resize_and_clear(_f.c().size());
@@ -50,10 +50,10 @@ void ColisionGraph::reduce(const int& p_vertice_index){
     }
 }
 
-void ColisionGraph::subgraph(solution_pair& xk, const DynamicBitCluster& bit_subgraph){
+void ColisionGraph::subgraph(Solution& xk, const DynamicBitCluster& bit_subgraph){
     //Variables not set to one are discarded and the other are reduced
-    for(int i=0;i<xk.x.size();i++){
-        if(xk.x[i]==1){
+    for(int i=0;i<xk.num_components();i++){
+        if(xk.x(i)==1){
             _vertice_links[i] << bit_subgraph;
         }else{
             _vertice_links[i] << 0;

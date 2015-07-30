@@ -14,6 +14,7 @@
 #include "config.h"
 #include "io.h"
 #include "formulation.h"
+#include "solution.h"
 #include "lagrangean_formulation.h"
 #include "simple_dual_solver.h"
 #include "minknap_dual_solver.h"
@@ -152,7 +153,7 @@ void solve(int max_N, double pi_factor, double gap_improving, Solver s, PrimalHe
     Formulation f;
 
     f = short_input(file);
-    dual_lagrangean_solution solution;
+    std::pair<Solution,Solution> solution;
 
     struct timeval timer_start = start_timer();
     struct timeval timer_end;
@@ -169,12 +170,12 @@ void solve(int max_N, double pi_factor, double gap_improving, Solver s, PrimalHe
 
     
     bool check_validity;
-    check_validity = (solution.p.vx <= OPT_VALUES[filename] && solution.d.vx >= OPT_VALUES[filename]);
+    check_validity = (solution.first.vx() <= OPT_VALUES[filename] && solution.second.vx() >= OPT_VALUES[filename]);
 
-    double gap_diff = (solution.d.vx - solution.p.vx);
+    double gap_diff = (solution.second.vx() - solution.first.vx());
         
 
-    printf("%.5lf\t%.5lf\t%.5lf\t%.5lf\t %s",solution.p.vx, solution.d.vx, gap_diff, OPT_VALUES[filename], check_validity?"OK":"SOMETHING WRONG");
+    printf("%.5lf\t%.5lf\t%.5lf\t%.5lf\t %s",solution.first.vx(), solution.second.vx(), gap_diff, OPT_VALUES[filename], check_validity?"OK":"SOMETHING WRONG");
 }
 
 bool is_regular_file(const char* filepath){

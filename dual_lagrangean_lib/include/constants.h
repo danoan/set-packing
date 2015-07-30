@@ -6,3 +6,6 @@
 
 #define MIN_TYPE 0
 #define MAX_TYPE 1
+
+#define UPPER_BOUND 0
+#define LOWER_BOUND 1

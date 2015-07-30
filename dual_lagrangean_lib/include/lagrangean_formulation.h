@@ -12,19 +12,18 @@
 
 class LagrangeanFormulation: public Formulation{
 private:
-    vector<double> _lbda;
     vector<double> _lagrangean_costs;
 
     unordered_map< int, ConstraintLine* > _dual_constraints;    //Constraints in the objective function
     unordered_map< int, ConstraintLine* > _primal_constraints;  //Constraints in the polyhedron
 
+    unordered_map< int, ConstraintLine* > _active_constraints;
+
     vector< unordered_set<int> > _restr_var_appears;   //Stores the restrictions indexes where the var appears;    
 
     vector< int > _primal_mask;
 
-    void check_lbda_setted();    
-    void init();
-    void update_lagrangean_costs();
+    void init();    
     void select_restrictions();
 
 public:
@@ -36,9 +35,8 @@ public:
     LagrangeanFormulation(const LagrangeanFormulation& p_lf);
     LagrangeanFormulation& operator=(const LagrangeanFormulation& p_lf);    
 
-    inline void lbda(vector<double> p_lbda){ _lbda=p_lbda; update_lagrangean_costs(); };
-    inline vector<double>& lbda(){ return _lbda; };
     inline vector<double>& lagrangean_costs(){return _lagrangean_costs;};
+    void update_lagrangean_costs();
     
     inline int times_var_appears(int var_index){ return _restr_var_appears[var_index].size(); }
     inline unordered_set<int>& constr_var_appears(int var_index){ return _restr_var_appears[var_index]; }
@@ -47,15 +45,19 @@ public:
 
     ConstraintLine* replace_constraint(vector<ConstraintMember>& vec_cm, ConstraintLine* cl);
     void add_new_constraint(ConstraintLine* cl);
+    void remove_constraint(ConstraintLine* cl);
 
-    inline line_it begin(){ return _primal_constraints.begin(); };
-    inline line_it end(){ return _primal_constraints.end(); };    
+    void make_active_constraint(ConstraintLine* cl);
+    void make_inactive_constraint(ConstraintLine* cl);
+
+    inline line_it primal_begin(){ return _primal_constraints.begin(); };
+    inline line_it primal_end(){ return _primal_constraints.end(); };    
 
     inline line_it dual_begin(){ return _dual_constraints.begin(); }    
     inline line_it dual_end(){ return _dual_constraints.end(); }
 
-    double compute(vector<double> p_x);
-    bool check_constraints(vector<double> p_x);
+    double compute(const vector<solution_component>& comps);
+    bool check_constraints(const vector<solution_component>& comps);
 
     string to_str();
 };

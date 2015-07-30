@@ -22,7 +22,6 @@ LagrangeanFormulation::LagrangeanFormulation(Formulation& f, vector< int >& p_pr
 }
 
 LagrangeanFormulation::LagrangeanFormulation(const LagrangeanFormulation& p_lf):Formulation(p_lf){
-    _lbda = p_lf._lbda;
     _lagrangean_costs = p_lf._lagrangean_costs;
     _primal_mask = p_lf._primal_mask;
 
@@ -32,8 +31,7 @@ LagrangeanFormulation::LagrangeanFormulation(const LagrangeanFormulation& p_lf):
 LagrangeanFormulation& LagrangeanFormulation::operator=(const LagrangeanFormulation& p_lf){
     if(this!=&p_lf){        
         Formulation::operator=(p_lf);
-        _lbda = p_lf._lbda;
-        _lagrangean_costs = p_lf._lagrangean_costs;
+        // _lagrangean_costs = p_lf._lagrangean_costs;
         _primal_mask = p_lf._primal_mask;        
 
         init(); //Constructor without parameters doesn't call this method, so I have to call it here
@@ -50,6 +48,7 @@ void LagrangeanFormulation::select_restrictions(){
     for(line_it it=_constraints.begin();it!=_constraints.end();it++){
         cl = (*it).second;
         _dual_constraints[cl->index()] = cl;
+        _active_constraints[cl->index()] = cl;
     }
 
     //After we took of the ones in the primal_mask
@@ -77,13 +76,7 @@ void LagrangeanFormulation::init(){
 
     _lagrangean_costs = vector<double>();
     _lagrangean_costs.resize(_c.size());         
-}
-
-void LagrangeanFormulation::check_lbda_setted(){
-    if(_lbda.size()==0){
-        printf("Error: No lambda was setted");
-        exit(-1);
-    }
+    update_lagrangean_costs();
 }
 
 void LagrangeanFormulation::update_lagrangean_costs(){
@@ -95,14 +88,22 @@ void LagrangeanFormulation::update_lagrangean_costs(){
     line_it it_r;
     ConstraintLine* rl;
     ConstraintMember rm;
-    for(i=0,it_r=_dual_constraints.begin();it_r!=_dual_constraints.end();it_r++,i++){
+    for(i=0,it_r=_active_constraints.begin();it_r!=_active_constraints.end();it_r++,i++){
         rl = (*it_r).second;
 
         for(member_it it_m=rl->begin(); it_m!=rl->end();it_m++){
             rm = (*it_m);
-            _lagrangean_costs[rm.index]+= -(_lbda[i]*rm.cost);
+            _lagrangean_costs[rm.index]+= -(rl->lbda()*rm.cost);
         }
     }
+}
+
+void LagrangeanFormulation::make_active_constraint(ConstraintLine* cl){
+    _active_constraints[cl->index()]=cl;
+}
+
+void LagrangeanFormulation::make_inactive_constraint(ConstraintLine* cl){
+    _active_constraints.erase(cl->index());
 }
 
 void LagrangeanFormulation::add_new_constraint(ConstraintLine* cl){
@@ -110,6 +111,7 @@ void LagrangeanFormulation::add_new_constraint(ConstraintLine* cl){
     for(member_it m_it=cl->begin();m_it!=cl->end();m_it++){
         _restr_var_appears[ m_it->index ].insert(cl->index());
     }
+    _active_constraints[cl->index()] = cl;
 }
 
 ConstraintLine* LagrangeanFormulation::replace_constraint(vector<ConstraintMember>& vec_cm, ConstraintLine* cl){
@@ -138,31 +140,49 @@ ConstraintLine* LagrangeanFormulation::replace_constraint(vector<ConstraintMembe
         _debug_var_after_count+=1;
     }
 
-    printf("***%d %d***\n",_debug_var_before_count,_debug_var_after_count);
+    // printf("***%d %d***\n",_debug_var_before_count,_debug_var_after_count);
 
     return Formulation::replace_constraint(vec_cm,cl);
 }
 
-double LagrangeanFormulation::compute(vector<double> p_x){
-    check_lbda_setted();
+void LagrangeanFormulation::remove_constraint(ConstraintLine* cl){
+    int var_index;
+    unordered_set< int >::iterator restr_index_it;
 
+    for(member_it m_it=cl->begin();m_it!=cl->end();m_it++){
+        var_index = m_it->index;        
+
+        restr_index_it = _restr_var_appears[var_index].find( cl->index() );
+        if( restr_index_it!=_restr_var_appears[var_index].end() ){
+            _restr_var_appears[var_index].erase( restr_index_it );
+        }
+    }
+
+    _dual_constraints.erase(cl->index());
+    _primal_constraints.erase(cl->index());
+    _active_constraints.erase(cl->index());
+
+    Formulation::remove_constraint(cl);
+}
+
+double LagrangeanFormulation::compute(const vector<solution_component>& comps){
     double s = 0;
     for(int j=0;j<_c.size();j++){
-        s+=p_x[j]*_lagrangean_costs[j];
+        s+=comps[j].x*_lagrangean_costs[j];
     }
 
     int i;
     line_it it_r;
     ConstraintLine* rl;
-    for(i=0, it_r=_dual_constraints.begin();it_r!=_dual_constraints.end();it_r++,i++){
+    for(i=0, it_r=_active_constraints.begin();it_r!=_active_constraints.end();it_r++,i++){
         rl = (*it_r).second;
-        s+=_lbda[i]*rl->rhs();
+        s+=rl->lbda()*rl->rhs();
     }
     
     return s;
 }
 
-bool LagrangeanFormulation::check_constraints(vector<double> x){
+bool LagrangeanFormulation::check_constraints(const vector<solution_component>& comps){
     double sum = 0;
 
     ConstraintLine* nlr;
@@ -173,73 +193,13 @@ bool LagrangeanFormulation::check_constraints(vector<double> x){
     for(line_it it=_primal_constraints.begin();it!=_primal_constraints.end();it++){
         nlr = (*it).second;
 
-        if(check_constraint( *nlr,x)==false) return false;
+        if(check_constraint( *nlr,comps)==false) return false;
     }
 
     return true;
 }
 
 string LagrangeanFormulation::to_str(){
-    ostringstream s;
-    // if(_objective_type==MIN_TYPE){
-    //     s << "MAX ";
-    // }else{
-    //     s << "MIN ";
-    // }
-
-    // vector<int> lagrangean_constraints;    
-    // for(int i=0;i<_constraints.size();i++){
-    //     lagrangean_constraints.push_back(i);
-    // }
-    // sort(_no_lagrangean_constraints.begin(),_no_lagrangean_constraints.end());    
-    // for(int k=_no_lagrangean_constraints.size()-1;k>=0;k--){
-    //     lagrangean_constraints.erase( lagrangean_constraints.begin() + _no_lagrangean_constraints[k] );
-    // }
-
-    
-    // for(int j=0;j<_c.size();j++){
-    //     s << "[" << _c[j] << " - (";    
-
-    //     for(int i=0;i<lagrangean_constraints.size();i++){
-    //         restriction_line rl = _constraints[lagrangean_constraints[i]];
-            
-    //         for(member_it it_m=rl.members.begin();it_m!=rl.members.end();it_m++){
-    //             restriction_line_member rlm = (*it_m);
-    //             if(rlm.index==j){
-    //                 if(rlm.cost>=0) s << "+";
-    //                 s << rlm.cost << "l" << i+1; 
-    //             }
-    //         }
-    //     }
-
-    //     s << ") ]x" << j+1;
-    //     if(j<_c.size()-1){ 
-    //         s << " + ";
-    //     }
-    // }
-
-    // s<<"\t subject to\n";
-
-    // for(int k=0;k<_no_lagrangean_constraints.size();k++){
-    //     restriction_line rl = _constraints[ _no_lagrangean_constraints[k] ];
-
-    //     for(member_it it_m=rl.members.begin();it_m!=rl.members.end();it_m++){
-    //         restriction_line_member rlm = (*it_m);
-
-    //         if(rlm.cost>=0) s << " +";
-    //         s << rlm.cost << "x" << rlm.index+1;
-    //     }
-
-    //     if(rl.op==EQUAL) s << " = ";
-    //     if(rl.op==GREATER) s << " > ";
-    //     if(rl.op==GREATER_EQUAL) s << " >= ";
-    //     if(rl.op==LESSER) s << " < ";
-    //     if(rl.op==LESSER_EQUAL) s << " <= ";
-
-    //     s << rl.rhs;
-    //     s << "\n";
-    // }
-    // s << "\n";
 
     return Formulation::to_str();
 }

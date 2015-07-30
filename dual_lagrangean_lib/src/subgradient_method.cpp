@@ -9,73 +9,69 @@ SubgradientMethod::SubgradientMethod(LagrangeanFormulation& p_lf, int p_max_N,
                                    _pi_factor(p_pi_factor),
                                    _DEBUG(p_debug){
                                                                         
-    _G.resize(p_lf.num_constraints());
-    _max_no_improvement = (int) floor( _max_N*p_max_no_improvement_factor );
-}
-
-void SubgradientMethod::compute_gradient(LagrangeanFormulation& lf, solution_pair& d){
-    _all_zeros = true;
-    double g;
-    double sum_a;
-
-    _sum_square_g = 0;
-    int i;
-    line_it it_r;
-    ConstraintLine* rl;
-    ConstraintMember rm;
-    for(i=0,it_r=lf.dual_begin();it_r!=lf.dual_end();it_r++,i++){
-        rl = (*it_r).second;
-        sum_a=0;
-        for(member_it it_m=rl->begin();it_m!=rl->end();it_m++){
-            rm = (*it_m);
-            sum_a+= rm.cost*d.x[rm.index];
-        }
-        g = rl->rhs() - sum_a;
-
-        if(lf.objective_type()==MAX_TYPE){
-            _G[i]=-g;
-        }else{
-            _G[i]=g;
-        }    
-
-        if(g!=0) _all_zeros=false;
-
-        _sum_square_g+=g*g;
-    } 
-}
-
-bool SubgradientMethod::next(vector<double>& lbda, LagrangeanFormulation& lf, solution_pair& p, solution_pair& d){
-    if(_num_it>_max_N or _pi<1e-8) return false;
-
-    compute_gradient(lf,d);
-
-    _factor = 1.0;  //Can be used as a way to randomize the algorithm. Not being used, however
-    if(lf.objective_type()==MAX_TYPE){
-        _T= ( _factor*_pi*(1.05*d.vx-p.vx) )/_sum_square_g;    
+    if(p_max_no_improvement_factor>1){
+        _max_no_improvement = p_max_no_improvement_factor;
     }else{
-        _T= ( _factor*_pi*(1.05*p.vx-d.vx) )/_sum_square_g;    
+        _max_no_improvement = (int) floor( _max_N*p_max_no_improvement_factor );    
     }
 
-    int i;
-    line_it it_r;
-    for(i=0, it_r=lf.dual_begin();it_r!=lf.dual_end();it_r++,i++){
-        lbda[i] = lbda[i]+_T*_G[i];    
-        
-        if(lbda[i]<=0){
-            lbda[i]=0;
+    for(line_it cl_it=p_lf.dual_begin();cl_it!=p_lf.dual_end();cl_it++){
+        _elements[ cl_it->second->index()] = SubgradientElement(cl_it->second,0);
+    }    
+
+    p_lf.add_new_constraint_callback( this, &SubgradientMethod::add_constraint_callback );
+    p_lf.add_remove_constraint_callback( this, &SubgradientMethod::remove_constraint_callback );
+
+}
+
+bool SubgradientMethod::next(LagrangeanFormulation& lf, Solution& p, Solution& d){
+    if(_num_it>_max_N or _pi<1e-8) return false;
+
+    if(_num_it==0){ 
+        _best_value = d.vx();
+    }
+
+    double sum_square_g = 0;
+    double temp;
+    for(subelem_it se_it=_elements.begin();se_it!=_elements.end();se_it++){
+        temp = se_it->second.compute_gradient(lf.objective_type(),d);
+        sum_square_g += temp*temp;
+    }
+
+    if(sum_square_g==0) return false;
+
+    double T;
+    double factor = 1.0;  //Can be used as a way to randomize the algorithm. Not being used, however
+    if(lf.objective_type()==MAX_TYPE){
+        T= ( factor*_pi*(1.05*d.vx()-p.vx()) )/sum_square_g;    
+    }else{
+        T= ( factor*_pi*(1.05*p.vx()-d.vx()) )/sum_square_g;    
+    }
+
+    int group;
+    for(subelem_it se_it =_elements.begin();se_it!=_elements.end();se_it++){
+        if( se_it->second.update_lbda(T,group) ){
+            if(group==1){   //ACTIVE
+                lf.make_active_constraint( se_it->second.constraint() );
+            }else{
+                lf.make_inactive_constraint( se_it->second.constraint() );
+            }
         }
     }  
+    lf.update_lagrangean_costs();
 
-    if(_DEBUG) log(lbda);
+    if(_DEBUG) log(p,d,lf,T);
+
     return true;
 }
 
-void SubgradientMethod::improvement_check(LagrangeanFormulation& lf, solution_pair& d_prime, solution_pair& d){
+void SubgradientMethod::improvement_check(LagrangeanFormulation& lf, Solution& d){
 
-    if( !( (lf.objective_type()==MAX_TYPE && d_prime.vx<d.vx) xor 
-           (lf.objective_type()==MIN_TYPE && d_prime.vx>d.vx) ) ){                
+    if( !( (lf.objective_type()==MAX_TYPE && _best_value>d.vx()) xor 
+           (lf.objective_type()==MIN_TYPE && _best_value<d.vx()) ) ){                
             _no_improvement+=1;
     }else{
+        _best_value = d.vx();
         _no_improvement=0;
     }
 
@@ -86,30 +82,39 @@ void SubgradientMethod::improvement_check(LagrangeanFormulation& lf, solution_pa
 
 }
 
-bool SubgradientMethod::after_check(solution_pair& p, solution_pair& d){
+bool SubgradientMethod::after_check(Solution& p, Solution& d){
     _num_it+=1;
-
-    if(_all_zeros){
-        // throw EX_ALL_GRADIENTS_ZERO();
-        return false;
-    }            
-    
-    if( ( fabs( (d.vx-p.vx)/p.vx) ) <= 0.01 ){
+   
+    if( ( fabs( (d.vx()-p.vx())/p.vx()) ) <= 0.01 ){
         return false;
     }       
 
     return true;    
 }
 
-void SubgradientMethod::log(vector<double>& lbda){
+void SubgradientMethod::log(Solution& p, Solution& d, LagrangeanFormulation& lf, double& T){
+    std::ostringstream _buffer;
 
-    printf("SUBGRADIENT ITERATION: %d\n",_num_it);
-    printf("PI: %.12lf\n",_pi);
-    print_vector("GRADIENT",_G);
-    printf("G SUM SQUARE: %.4lf\n", _sum_square_g);
-    printf("STEP SIZE: %.12lf\n", _T);
-    print_vector("LBDA", lbda);
-    printf("NO IMPROVEMENT: %d\n",_no_improvement);
+    _buffer << "SUBGRADIENT ITERATION: " << _num_it << std::endl;
+    _buffer << "PI: " << _pi << std::endl;
+    _buffer << "STEP SIZE: " << T << std::endl;
+    _buffer << "GRADIENT: (";
+    
+    for(subelem_it se_it=_elements.begin();se_it!=_elements.end();se_it++){
+        _buffer << se_it->second.grad() << ",";
+    }
+    _buffer << ")" << std::endl;
+    _buffer << "LBDA: (";
 
-    printf("\n");
+    for(subelem_it se_it=_elements.begin();se_it!=_elements.end();se_it++){
+        _buffer << se_it->second.lbda() << ",";
+    }
+            
+    _buffer << ")" << std::endl;
+
+    _buffer << "STEP SIZE: " << T << std::endl;
+    _buffer << "NO IMPROVEMENT: " << _no_improvement << std::endl;
+    _buffer << "BEST BOUND: " << _best_value << std::endl;
+
+    _out = _buffer.str();
 }

@@ -34,23 +34,22 @@ vector<benefit_cost_pair> compute_benefit_cost(ConstraintLine& br, vector<double
     order the variables x[j] by benefit cost value and sets x[j]=1. If after x[j]=1 some constraint is 
     violated, x[j] is again set to 0.
 */
-solution_pair find_primal_int_solution_by_benefit_cost_heuristic(Formulation& f, vector<benefit_cost_pair>& bc_vector){
-    solution_pair s;
-    for(int j=0;j<f.c().size();j++){
-        s.x.push_back(0);
-    }
-
+void find_primal_int_solution_by_benefit_cost_heuristic(Formulation& f, vector<benefit_cost_pair>& bc_vector, Solution& s){
     benefit_cost_pair bcp;
     for(int k=0;k<bc_vector.size();k++){
          bcp =  bc_vector[k];
-         if(bcp.value<0){continue;}
-         s.x[bcp.index] = 1;
-         if(f.check_constraints(s.x)==false){
-            s.x[bcp.index] = 0;
+
+         if(bcp.value<0){
+            s.set_component(bcp.index,0);
+         }else{
+            s.set_component(bcp.index,1);
+         }
+         
+
+         if(f.check_constraints(s.x())==false){
+            s.set_component(bcp.index,0);
          }
     }
-
-    return s;
 }
 
 
@@ -58,75 +57,62 @@ solution_pair find_primal_int_solution_by_benefit_cost_heuristic(Formulation& f,
     After the lagrangean subproblem is solved, a dual solution Dx for a certain u is known. This method
     uses the solution Dx to come up with a new feasible primal solution Px. In order to do that, it uses
     the Complementary Slackness Theorem. Considering the Set Packing Problem, this theorem ensures that
-    if Dx[j]=0 then for sure Px[j]=0. In other words, only when Dx[j]=1 Px[j] could assume 1 as a value.
+    if Dx[j]=0 then for sure Px[j]=0. In other words, only when Dx[j]=1 Px[j] could assume 1 as value.
 */
-solution_pair find_primal_int_feasible_solution_from_dual(solution_pair& d, Formulation& f, vector<benefit_cost_pair>& bc_vector){
-    solution_pair s;
-    for(int j=0;j<f.c().size();j++){
-        s.x.push_back(0);
-    }
-
+void find_primal_int_feasible_solution_from_dual(Solution& d, Formulation& f, vector<benefit_cost_pair>& bc_vector, Solution& p){
     benefit_cost_pair bcp;
     //Set the coefficients of the new solution as the same as the dual, but in order of benefit cost
     for(int k=0;k<bc_vector.size();k++){
         bcp =  bc_vector[k];
-        if(d.x[bcp.index]==1){
-            s.x[bcp.index]=1;
+        if(d.x(bcp.index)==1){
+            p.set_component(bcp.index,1);
 
-            if(f.check_constraints(s.x)==false){
-                s.x[bcp.index] = 0;
+            if(f.check_constraints(p.x())==false){
+                p.set_component(bcp.index,0);
             }                    
+        }else{
+            p.set_component(bcp.index,0);
         }
     }
     
     for(int k=0;k<bc_vector.size();k++){
          bcp =  bc_vector[k];
-         if(s.x[bcp.index]==1){continue;} //It`s already set from the previous loop
-         if(bcp.value<0){continue;}
-
-         s.x[bcp.index] = 1;
-         if(f.check_constraints(s.x)==false){
-            s.x[bcp.index] = 0;
+         if(p.x(bcp.index)==1){continue;} //It`s already set from the previous loop
+         
+         p.set_component(bcp.index,1);
+         if(f.check_constraints(p.x())==false){
+            p.set_component(bcp.index,0);
          }
     }
-
-    return s;
 }
 
 /*
     It solves the sublagrangean dual problem without restriction for a certain u at optimality.
     This is possible when the Lagrangean Formulation has no constraints.
 */
-solution_pair find_int_optimal_solution_lagrangean_subproblem(LagrangeanFormulation& lf){
-    solution_pair s;
+void find_int_optimal_solution_lagrangean_subproblem(LagrangeanFormulation& lf, Solution& d){
     vector<double> lc = lf.lagrangean_costs();
-
-    for(int j=0;j<lf.c().size();j++){
-        s.x.push_back(0);
-    }
 
     for(int j=0;j<lc.size();j++){
 
         if(lf.objective_type()==MAX_TYPE){
             if(lc[j]>=0){
-                s.x[j] = 1;
+                d.set_component(j,1);
             }else{
-                s.x[j] = 0;
+                d.set_component(j,0);
             }            
         }else{
             if(lc[j]<=0){
-                s.x[j] = 1;
+                d.set_component(j,1);
             }else{
-                s.x[j] = 0;
+                d.set_component(j,0);
             }                        
         }
 
-        if(lf.check_constraints(s.x)==false){
-            s.x[j] = 0;
+        if(lf.check_constraints(d.x())==false){
+            d.set_component(j,0);
         }
 
     }
-    s.vx = lf.compute(s.x);
-
-    return s;
+    d.vx( lf.compute(d.x()) );
 }

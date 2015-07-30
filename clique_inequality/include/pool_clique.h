@@ -11,9 +11,10 @@
 #include <unordered_set>
 
 #include "colision_graph.h"
+#include "solution.h"
 #include "clique_inequality.h"
 #include "constraint_line.h"
-#include "formulation.h"
+#include "lagrangean_formulation.h"
 
 struct cliquecomp{
     bool operator()(const CliqueInequality& a, const CliqueInequality& b) const{
@@ -24,7 +25,7 @@ struct cliquecomp{
 
 class PoolClique{
 ACCESS_MODE
-    Formulation& _f;
+    LagrangeanFormulation& _f;
     ColisionGraph _cg;
     int _replaced_constraints;
     int _new_constraints;
@@ -33,14 +34,18 @@ ACCESS_MODE
 
     CliqueInequality create_clique_inequality(ConstraintLine** cl, std::vector<int>& vertices_in_clique);
     std::vector<int> find_clique(int seed, ColisionGraph temp_cg, std::vector<bool> vertice_marked);
+    void assign_groups(std::vector<double>& lbda);
 
 public:
-    PoolClique(Formulation& p_f);
+    PoolClique(LagrangeanFormulation& p_f);
 
     bool add_clique(ConstraintLine* p_cl, int p_num_variables);
     bool add_clique(CliqueInequality& p_ci);
 
-    int extend_pool(solution_pair& xk);
+    void replace_clique(std::unordered_set<CliqueInequality>::iterator& cl_it, CliqueInequality& temp_clique);
+    void erase_clique_and_constraint(std::unordered_set<CliqueInequality>::iterator& cl_it);
+
+    int extend_pool(Solution& xk);
 
     inline int replaced_constraints(){return _replaced_constraints;};
     inline int new_constraints(){return _new_constraints;};

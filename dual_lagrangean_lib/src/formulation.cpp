@@ -12,7 +12,7 @@ Formulation::Formulation(vector< vector<double> >& p_A, vector<double>& p_b, vec
     
     ConstraintLine* rl;
     for(int i=0;i<p_A.size();i++){
-        rl = new ConstraintLine();
+        rl = new ConstraintLine(true);
 
         for(int j=0;j<p_A[i].size();j++){
             ConstraintMember rm;
@@ -45,7 +45,7 @@ Formulation::Formulation(vector< vector<int> >& p_A_index, vector< vector<double
     
     ConstraintLine* rl;
     for(int i=0;i<p_A_index.size();i++){
-        rl = new ConstraintLine();
+        rl = new ConstraintLine(true);
         for(int j=0;j<p_A_index[i].size();j++){
             ConstraintMember rm;
 
@@ -94,12 +94,21 @@ void Formulation::copy_formulation(const Formulation& p_f){
         _constraints[temp->index()] = temp;    
     }
     
+    _callback_new_constraint_vector = p_f._callback_new_constraint_vector;
+    _callback_remove_constraint_vector = p_f._callback_remove_constraint_vector;
+    
     _c = p_f._c;
     _objective_type = p_f._objective_type;      
 }
 
 void Formulation::add_new_constraint(ConstraintLine* cl){
     _constraints[cl->index()] = cl;
+    for(call_it ca_it=_callback_new_constraint_vector.begin();ca_it!=_callback_new_constraint_vector.end();ca_it++){
+        SubgradientMethod* obj = ca_it->first;
+        void (SubgradientMethod::*fptr)(ConstraintLine*) = ca_it->second;
+
+        (obj->*fptr)(cl);
+    }
 }
 
 ConstraintLine* Formulation::replace_constraint(vector<ConstraintMember>& vec_cm, ConstraintLine* cl){
@@ -107,22 +116,33 @@ ConstraintLine* Formulation::replace_constraint(vector<ConstraintMember>& vec_cm
     return cl;
 }
 
-double Formulation::compute(vector<double> x){
+void Formulation::remove_constraint(ConstraintLine* cl){
+    _constraints.erase(cl->index());
+    for(call_it ca_it=_callback_remove_constraint_vector.begin();ca_it!=_callback_remove_constraint_vector.end();ca_it++){
+        SubgradientMethod* obj = ca_it->first;
+        void (SubgradientMethod::*fptr)(ConstraintLine*) = ca_it->second;
+
+        (obj->*fptr)(cl);
+    }    
+    delete cl;
+}
+
+double Formulation::compute(const vector<solution_component>& comps){
     double s = 0;
     for(int j=0;j<_c.size();j++){
-        s+=x[j]*_c[j];
+        s+=comps[j].x*_c[j];
     }
 
     return s;
 }
 
-bool Formulation::check_constraint(ConstraintLine& rl,vector<double>& x){
+bool Formulation::check_constraint(ConstraintLine& rl,const vector<solution_component>& comps){
     double sum = 0;
     
     ConstraintMember rm;
     for(member_it it_m=rl.begin();it_m!=rl.end();it_m++){
         rm = (*it_m);
-        sum+= x[ rm.index ]*rm.cost;
+        sum+= comps[ rm.index ].x*rm.cost;
     }
 
     switch(rl.op()){
@@ -146,11 +166,11 @@ bool Formulation::check_constraint(ConstraintLine& rl,vector<double>& x){
     return true;
 }
 
-bool Formulation::check_constraints(vector<double> x){    
+bool Formulation::check_constraints(const vector<solution_component>& comps){    
     ConstraintLine* rl;
     for(line_it it_r=begin();it_r!=end();it_r++){
         rl = (*it_r).second;
-        if(check_constraint( *rl,x )==false) return false;
+        if(check_constraint( *rl, comps )==false) return false;
     }
 
     return true;

@@ -29,7 +29,7 @@ CCFLAGS = -std=c++11 -O3
 
 all: main
 
-debug: CCFLAGS = -std=c++11 -g -O1
+debug: CCFLAGS = -std=c++11 -g
 debug: main
 
 main: check lib

@@ -25,6 +25,9 @@ public:
     void set_component(const int& index, const double& x);
     inline const double& x(const int& index){ return _components[index].x; }
     inline const std::vector<solution_component>& x(){ return _components; }
+    inline bool is_fixed(const int& index){ return _components[index].fixed; }
+
+    inline void fix(const int& index, const int& val){ _components[index].x = val; _components[index].fixed=true;}
     
     inline int num_components(){ return _components.size(); }
 

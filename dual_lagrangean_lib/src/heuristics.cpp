@@ -90,10 +90,15 @@ void find_primal_int_feasible_solution_from_dual(Solution& d, Formulation& f, ve
     It solves the sublagrangean dual problem without restriction for a certain u at optimality.
     This is possible when the Lagrangean Formulation has no constraints.
 */
-void find_int_optimal_solution_lagrangean_subproblem(LagrangeanFormulation& lf, Solution& d){
+void find_int_optimal_solution_lagrangean_subproblem(LagrangeanFormulation& lf, Solution& d, const int& fixed_variable, const int& fixed_value){
     vector<double> lc = lf.lagrangean_costs();
 
     for(int j=0;j<lc.size();j++){
+
+        if(j==fixed_variable){
+            d.set_component(j,fixed_value);
+            continue;
+        }
 
         if(lf.objective_type()==MAX_TYPE){
             if(lc[j]>=0){

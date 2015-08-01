@@ -85,7 +85,7 @@ void SubgradientMethod::improvement_check(LagrangeanFormulation& lf, Solution& d
 bool SubgradientMethod::after_check(Solution& p, Solution& d){
     _num_it+=1;
    
-    if( ( fabs( (d.vx()-p.vx())/p.vx()) ) <= 0.01 ){
+    if( ( fabs( (d.vx()-p.vx())/p.vx()) ) <= 0.0001 ){
         return false;
     }       
 

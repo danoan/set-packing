@@ -24,12 +24,14 @@ private:
     ConstraintLine get_backpack_restriction(Formulation& f);
 
     /*Implemented virtual functions*/
-    void find_primal_solution();
+    void find_primal_solution(Solution& p);
     void update_primal(bool p_use_lagrangean_costs);
-    void find_dual_solution();
+    void find_dual_solution(Solution& d);
     void solve_lagrangean_subproblem(Formulation& f, LagrangeanFormulation& lf, int p_max_N, 
                                       double p_pi_factor, double p_max_no_improvement,
                                       bool p_use_lagrangean_costs);
+
+    void fixing();
 
 public:
     SimpleDualSolver(Formulation& p_f, bool p_debug);

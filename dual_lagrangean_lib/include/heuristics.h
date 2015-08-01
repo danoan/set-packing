@@ -24,7 +24,7 @@ vector<benefit_cost_pair> compute_benefit_cost(ConstraintLine& br, vector<double
 void find_primal_int_solution_by_benefit_cost_heuristic(Formulation& f, vector<benefit_cost_pair>& bc_vector, Solution& d);
 void find_primal_int_feasible_solution_from_dual(Solution& d, Formulation& f,vector<benefit_cost_pair>& bc_vector, Solution& p);
 
-void find_int_optimal_solution_lagrangean_subproblem(LagrangeanFormulation& lf, Solution& d);
+void find_int_optimal_solution_lagrangean_subproblem(LagrangeanFormulation& lf, Solution& d,  const int& fixed_variable=-1, const int& fixed_value=-1);
 
 
 #endif

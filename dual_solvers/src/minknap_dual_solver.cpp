@@ -16,8 +16,8 @@ MinknapDualSolver::MinknapDualSolver(Formulation& p_f, bool p_debug):
 std::pair<Solution,Solution> MinknapDualSolver::solve(int p_max_N, double p_pi_factor, 
                          double p_max_no_improvement, bool p_use_lagrangean_costs){
 
-    find_primal_solution();    
-    find_dual_solution();
+    find_primal_solution(_primal);    
+    find_dual_solution(_dual);
 
     if(_debug) log_start(_f,_lf,_primal,_dual);    
 
@@ -61,9 +61,9 @@ ConstraintLine* MinknapDualSolver::get_knapsack_constraint(Formulation& f){
     return backpack_restriction;
 }
 
-void MinknapDualSolver::find_primal_solution(){
-    find_primal_int_solution_by_benefit_cost_heuristic(_f, _primal_kc,_primal);
-    _primal.vx( _f.compute(_primal.x()) );
+void MinknapDualSolver::find_primal_solution(Solution& p){
+    find_primal_int_solution_by_benefit_cost_heuristic(_f, _primal_kc,p);
+    p.vx( _f.compute(p.x()) );
 }
 
 void MinknapDualSolver::update_primal(bool p_use_lagrangean_costs){
@@ -77,7 +77,7 @@ void MinknapDualSolver::update_primal(bool p_use_lagrangean_costs){
     _primal.vx( _f.compute(_primal.x()) );        
 }
 
-int MinknapDualSolver::active_constraints_for_vars(vector<int>& Ix){
+int MinknapDualSolver::active_constraints_for_vars(vector<int>& Ix, const int& fixed_variable=-1, const int& fixed_value=-1){
     /*
         It returns how many constraints uses the variables on Ix
         Ix is a vector of indexes of variables x. The indexes are supposed to be in order
@@ -88,6 +88,7 @@ int MinknapDualSolver::active_constraints_for_vars(vector<int>& Ix){
     int k=0;
 
     for(int i=0;i<Ix.size();i++){
+        if(i==fixed_variable && fixed_value==1) continue;
 
         constr_indexes = _lf.constr_var_appears( Ix[i] );
 
@@ -103,37 +104,60 @@ int MinknapDualSolver::active_constraints_for_vars(vector<int>& Ix){
     return k;
 }
 
-void MinknapDualSolver::find_dual_solution(){    
+void MinknapDualSolver::find_dual_solution(Solution& d, const int& fixed_variable, const int& fixed_value){    
     int lift_factor = 1000;
     long value;
 
     vector<int> Ix;
-
+    int fv_intern_index = -1;
+    bool flag_fixed = false;
     //Store the variables indexes that has non-negative lagrangean costs
     for(int i=0;i<_lf.lagrangean_costs().size();i++){
+        
         if( _lf.lagrangean_costs()[i]>=0 ){
             Ix.push_back(i);
-            // printf("LC: %lf\n",_lf.lagrangean_costs()[i]);
-        }
+            if(i==fixed_variable){
+                fv_intern_index = Ix.size()-1;                
+                flag_fixed = true;
+            }
+        }            
+
     }
+
 
     //If there are more than 0 of such variables, prepare the correspondent knapsack constraint
     if( Ix.size()>0 ){
-        int m = Ix.size();
-        int n = active_constraints_for_vars(Ix);
+        int m = Ix.size();      //Number of Variables of Pisinger's Formulation
+        int n = active_constraints_for_vars(Ix,fv_intern_index,fixed_value);    //Right Side of Knapsack Constraint
 
-        
-        long* costs = new long int[m];
-        for(int i=0;i<m;i++){
-            costs[i] = (long) ceil(_lf.lagrangean_costs()[ Ix[i] ]*lift_factor);
+        if(fv_intern_index>-1 && flag_fixed){
+            m-=1;   //One variable less in Pisinger's Formulation
         }
+       
+        long* costs = new long int[m];  //Objective Function Coefficients
+        int costs_index=0;
+        int i=0;
+        while(i<Ix.size()){
+            if(i==fv_intern_index && flag_fixed){i++; continue;}
 
+            costs[costs_index++] = (long) ceil(_lf.lagrangean_costs()[ Ix[i] ]*lift_factor);
+            if(costs[costs_index-1]<0){ printf("ERROR - %d - %lu\n",i,costs[costs_index-1]); }
+            i++;
+        }
         
-        int* weights = new int[m];   
+        int* weights = new int[m];   //Knapsack Constraints Coefficients
         int sum_w=0;
-        for(int i=0;i<m;i++){
-            weights[i] = _lf.times_var_appears(Ix[i]);
-            sum_w+=weights[i];
+        int weights_index=0;
+        i=0;
+        while(i<Ix.size()){
+            if(i==fv_intern_index && flag_fixed){ 
+                i++;                     
+                continue;                    
+            }
+            
+            weights[weights_index] = _lf.times_var_appears(Ix[i]);
+            sum_w+=weights[weights_index++];
+            i++;
         }        
 
         // solution_pair d_knap;                
@@ -147,53 +171,84 @@ void MinknapDualSolver::find_dual_solution(){
                 x_line[i]=1;
             }
         }else{
-            
-            // for(int i=0;i<m;i++){
-            //     x_line[i]=0;
-            // }            
-            
-            // value = knapsack(costs,weights,n,m,1,x_line);
-
-            // j=0;
-            // for(int i=0;i<_lf.lagrangean_costs().size();i++){            
-            //     if(j>=m or Ix[j]!=i){
-            //         d_knap.x.push_back(0.0);
-            //     }else{
-            //         d_knap.x.push_back( (double) x_line[j++]);
-            //     }
-            // }   
-
-
             for(int i=0;i<m;i++){
                 x_line[i]=0;
-            }            
+            }                
 
             minknap(m,costs,weights,x_line,n);                           
         }
 
         j=0;
+        int c=0;
         for(int i=0;i<_lf.lagrangean_costs().size();i++){            
-            if(j>=m or Ix[j]!=i){
-                _dual.set_component(i,0);
-            }else{
-                _dual.set_component(i, (double) x_line[j++]);
+            if(Ix[j]==fixed_variable && flag_fixed){
+                d.set_component(fixed_variable,fixed_value);
+                j++;
+                continue;
             }
-        }                 
+
+            if(c>=m or Ix[j]!=i){
+                d.set_component(i,0);   //Here are the variables not included in Pisinger's Formulation due to negative Lagrangean Cost
+            }else{
+                d.set_component(i, (double) x_line[c++]);
+                j++;
+            }
+        }
 
 
-        // if(d_knap.x.size()!=0)
-        //     printf("VALUE KNAP: %.2f\n",_lf.compute(d_knap.x));
+        // printf("COSTS %d-%d\n",m,costs_index);                 
+        // for(int i=0;i<m;i++){
+        //     printf("%lu ", costs[i]);
+        // }printf("\n");
 
-        // printf("VALUE MINKNAP: %.2f\n",_lf.compute(d.x));        
-        _dual.vx( _lf.compute(_dual.x()) );    
+        // printf("WEIGHTS %d-%d-%lu\n",m,weights_index,Ix.size());                                 
+        // for(int i=0;i<m;i++){
+        //     printf("%d ", weights[i]);
+        // }printf("\n");      
+    
+        d.vx( _lf.compute(d.x()) );    
+
+        // printf("XLINE\n");                 
+        // for(int i=0;i<m;i++){
+        //     printf("%d ", x_line[i]);
+        // }printf("*** %.4lf ***\n", d.vx());        
+        // print_vector("DUAL_SOL",d.x());
 
         delete[] costs;
         delete[] weights;
         delete[] x_line;
 
     }else{       
-        find_int_optimal_solution_lagrangean_subproblem(_lf,_dual);
+        find_int_optimal_solution_lagrangean_subproblem(_lf,d,fixed_variable,fixed_value);
     }
+}
+
+void MinknapDualSolver::fixing(){
+    //FIXING x=0
+    Solution fixed_sol = _dual;
+    for(int i=0;i<_dual.num_components();i++){
+        if(_dual.x(i)==0 && !(_dual.is_fixed(i))){
+            find_dual_solution(fixed_sol,i,1);
+            // printf("%.4lf  -  %.4lf\n", fixed_sol.vx(), _primal.vx() );
+            if( fixed_sol.vx() < _primal.best_value() ){
+                _dual.fix(i,0);
+                _primal.fix(i,0);
+                // printf("VAR %d FIXED TO %d\n",i,0);
+            }
+        }
+    }
+
+    //FIXING x=1
+    for(int i=0;i<_dual.num_components();i++){
+        if(_dual.x(i)==1  && !(_dual.is_fixed(i)) ){
+            find_dual_solution(fixed_sol,i,0);
+            if( fixed_sol.vx() < _primal.best_value() ){
+                _dual.fix(i,1);
+                _primal.fix(i,1);
+                // printf("VAR %d FIXED TO %d\n",i,1);
+            }
+        }
+    } 
 }
 
 void MinknapDualSolver::solve_lagrangean_subproblem(Formulation& f, LagrangeanFormulation& lf, int p_max_N, 
@@ -205,10 +260,12 @@ void MinknapDualSolver::solve_lagrangean_subproblem(Formulation& f, LagrangeanFo
     // bool still_extending = true;
     printf("RESTRICOES (INICIO): %d\n",_lf.num_constraints());    
     while( sm.next(lf,_primal,_dual) ){
-        find_dual_solution();        
+        find_dual_solution(_dual);        
         sm.improvement_check(lf,_dual);
 
         update_primal(p_use_lagrangean_costs);   
+
+        fixing();
 
         // do{
         //     still_extending = pool.extend_pool();
@@ -229,7 +286,7 @@ void MinknapDualSolver::solve_lagrangean_subproblem(Formulation& f, LagrangeanFo
         }
     }
     printf("RESTRICOES (FINAL): %d\t REPLACED:%d\n",_lf.num_constraints(),pool.replaced_constraints());
-    printf("NUM_IT: %d\nBEST DUAL BOUND:%.4lf\n",sm.iterations(),sm.best_bound());
+    printf("NUM ITERATIONS: %d\n",sm.iterations());
 
     return;
 }

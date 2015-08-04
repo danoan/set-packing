@@ -36,6 +36,8 @@ main: check lib
 	g++ -I $(header_pisinger_lib) -I $(header_path) -I $(header_dual_lib) -I $(header_ext) -I $(header_clique_lib) main.cpp -o $(bin_path)/main.out -lm -L$(lib_path) -lsolver -L$(lib_dual_lib) -lpack -L$(lib_pisinger_lib) -lpisinger -L$(lib_ext) -L$(lib_clique_lib) -lclique $(CCFLAGS)
 	g++ -I $(header_pisinger_lib) -I $(header_path) -I $(header_dual_lib) -I $(header_ext) -I $(header_clique_lib) batch_run.cpp -o $(bin_path)/batch_run.out -lm -L$(lib_path) -lsolver -L$(lib_dual_lib) -lpack -L$(lib_pisinger_lib) -lpisinger -L$(lib_ext) -L$(lib_clique_lib) -lclique $(CCFLAGS)
 
+convert_to_lp:
+	g++ -I $(header_pisinger_lib) -I $(header_path) -I $(header_dual_lib) -I $(header_ext) -I $(header_clique_lib) convert_to_lp.cpp -o $(bin_path)/convert_to_lp.out -lm -L$(lib_path) -lsolver -L$(lib_dual_lib) -lpack -L$(lib_pisinger_lib) -lpisinger -L$(lib_ext) -L$(lib_clique_lib) -lclique $(CCFLAGS)
 
 lib: simple_dual_solver.o minknap_dual_solver.o real_to_int.o
 	ar rc $(lib_path)/libsolver.a $(object_path)/*.o

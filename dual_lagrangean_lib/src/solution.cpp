@@ -7,13 +7,13 @@ Solution::Solution(int num_components, int solution_semantic):_solution_semantic
     }
 }
 
-void Solution::set_component(const int& index, const double& x){ 
-    if( !(_components[index].fixed) ){
-        _components[index].x = x;     
+void Solution::set_component(const int& index, double x){ 
+    if( !(_components[index].fixed()) ){
+        _components[index].x(x);     
     }    
 }
 
-void Solution::vx(const double& vx){ 
+void Solution::vx(double vx){ 
     _vx = vx; 
     if(_any_value==false){
         _any_value = true;

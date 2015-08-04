@@ -13,18 +13,14 @@
 
 using namespace std;
 
-typedef struct _benefit_cost_pair{
-    double value;
-    int index;
-} benefit_cost_pair;
-bool compare_benefit_cost(benefit_cost_pair a, benefit_cost_pair b);
+bool compare_benefit_cost(BenefitCostPair a, BenefitCostPair b);
 
-vector<benefit_cost_pair> compute_benefit_cost(ConstraintLine& br, vector<double>& cost_vector);
+vector<BenefitCostPair> compute_benefit_cost(ConstraintLine& br, vector<double>& cost_vector);
 
-void find_primal_int_solution_by_benefit_cost_heuristic(Formulation& f, vector<benefit_cost_pair>& bc_vector, Solution& d);
-void find_primal_int_feasible_solution_from_dual(Solution& d, Formulation& f,vector<benefit_cost_pair>& bc_vector, Solution& p);
+void find_primal_int_solution_by_benefit_cost_heuristic(Formulation& f, vector<BenefitCostPair>& bc_vector, Solution& d);
+void find_primal_int_feasible_solution_from_dual(Solution& d, Formulation& f,vector<BenefitCostPair>& bc_vector, Solution& p);
 
-void find_int_optimal_solution_lagrangean_subproblem(LagrangeanFormulation& lf, Solution& d,  const int& fixed_variable=-1, const int& fixed_value=-1);
+void find_int_optimal_solution_lagrangean_subproblem(LagrangeanFormulation& lf, Solution& d,  const int fixed_variable=-1, const int fixed_value=-1);
 
 
 #endif

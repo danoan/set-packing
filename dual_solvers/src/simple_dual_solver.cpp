@@ -52,14 +52,9 @@ std::pair<Solution,Solution> SimpleDualSolver::solve(int p_max_N, double p_pi_fa
     find_primal_solution(_primal);    
     find_dual_solution(_dual);
 
-    // printf("RESTRICOES (INICIO): %d\n",_lf.num_constraints());
-
     if(_debug) log_start(_f,_lf,_primal,_dual);    
 
     solve_lagrangean_subproblem(_f,_lf,p_max_N, p_pi_factor,p_max_no_improvement,p_use_lagrangean_costs);    
-
-    printf("RESTRICOES:%d %d\n",_f.num_constraints(),_lf.num_constraints());
-    // printf("%s\n",_lf.to_str().c_str());
 
     return std::make_pair(_primal,_dual);
 }
@@ -70,7 +65,9 @@ void SimpleDualSolver::find_primal_solution(Solution& p){
     p.vx( _f.compute(p.x()) );
 }
 
-void SimpleDualSolver::update_primal(bool p_use_lagrangean_costs){
+bool SimpleDualSolver::update_primal(bool p_use_lagrangean_costs){
+    double previous_vx = _primal.vx();
+
     if(p_use_lagrangean_costs){
         _lagrangean_bc = compute_benefit_cost(_primal_backpack_restriction,_lf.lagrangean_costs());
         find_primal_int_feasible_solution_from_dual(_dual,_f,_lagrangean_bc,_primal);
@@ -80,6 +77,7 @@ void SimpleDualSolver::update_primal(bool p_use_lagrangean_costs){
     
     _primal.vx( _f.compute(_primal.x()) );        
 
+    return previous_vx<_primal.vx();    //BETTER PRIMAL FOUND
 }
 
 void SimpleDualSolver::find_dual_solution(Solution& d){
@@ -96,7 +94,7 @@ void SimpleDualSolver::fixing(){
             if( fixed_sol.vx() <_primal.best_value() ){
                 _dual.fix(i,0);
                 _primal.fix(i,0);
-                // printf("VAR %d FIXED TO %d\n",i,0);
+                printf("VAR %d FIXED TO %d\n",i,0);
             }
         }
     }
@@ -108,7 +106,7 @@ void SimpleDualSolver::fixing(){
             if( fixed_sol.vx() < _primal.best_value() ){
                 _dual.fix(i,1);
                 _primal.fix(i,1);
-                // printf("VAR %d FIXED TO %d\n",i,1);
+                printf("VAR %d FIXED TO %d\n",i,1);
             }
         }
     }    
@@ -121,14 +119,17 @@ void SimpleDualSolver::solve_lagrangean_subproblem(Formulation& f, LagrangeanFor
 
     // bool still_extending=true;
     PoolClique pool(lf);
-    printf("RESTRICOES (INICIO): %d\n",_lf.num_constraints());    
+    bool flag_fixing = false;
     while( sm.next(lf,_primal,_dual) ){
         find_dual_solution(_dual);
-        sm.improvement_check(lf,_dual);
-
-        update_primal(p_use_lagrangean_costs);   
-
-        fixing();
+        
+        flag_fixing = sm.improvement_check(lf,_dual);
+        flag_fixing = flag_fixing || update_primal(p_use_lagrangean_costs);   
+        
+        if(flag_fixing){
+            fixing();    
+        }
+        
 
         // do{
         //     still_extending = pool.extend_pool();
@@ -136,20 +137,13 @@ void SimpleDualSolver::solve_lagrangean_subproblem(Formulation& f, LagrangeanFor
 
         pool.extend_pool(_dual);
 
-        if(_debug){
-            printf("%s\n",sm.log().c_str());
+        if(_debug) log(sm,_lf);
 
-            print_vector("LAGRANGEAN COSTS", lf.lagrangean_costs());
-            print_solution("PRIMAL",_primal);
-            print_solution("DUAL",_dual);
-        }
 
         if( sm.after_check(_primal,_dual)==false ){
             break;
         }
     }
-    printf("RESTRICOES (FINAL): %d\t REPLACED:%d\n",_lf.num_constraints(),pool.replaced_constraints());
-    printf("NUM ITERATIONS: %d\n",sm.iterations());
 
     return;
 }

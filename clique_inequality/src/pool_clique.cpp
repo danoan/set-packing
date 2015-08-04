@@ -170,7 +170,11 @@ int PoolClique::extend_pool(Solution& xk){
             if(relevant_clique){
                 replaced = false;
                 for( std::unordered_set<CliqueInequality>::iterator cl_it = _cliques_access.begin();cl_it!=_cliques_access.end();){ 
-                
+                    if(cl_it->constraint()->original()){
+                        cl_it++;
+                        continue;
+                    }
+
                     //It could be the case that temp_clique dominates more than one clique already in the pool
                     //Here, only one is being replaced.
                     if( temp_clique > *cl_it ){

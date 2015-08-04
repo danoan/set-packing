@@ -1,0 +1,7 @@
+for i in 'pb_100rnd0100.dat' 'pb_100rnd0200.dat' 'pb_100rnd0300.dat' 'pb_100rnd0400.dat' 'pb_100rnd0500.dat' 'pb_100rnd0600.dat' 'pb_100rnd0700.dat' 'pb_100rnd0800.dat' 'pb_100rnd0900.dat' 'pb_100rnd1000.dat' 'pb_100rnd1100.dat' 'pb_100rnd1200.dat' 'pb_200rnd0100.dat' 'pb_200rnd0200.dat' 'pb_200rnd0300.dat' 'pb_200rnd0400.dat' 'pb_200rnd0500.dat' 'pb_200rnd0600.dat' 'pb_200rnd0700.dat' 'pb_200rnd0800.dat' 'pb_200rnd0900.dat' 'pb_200rnd1000.dat' 'pb_200rnd1100.dat' 'pb_200rnd1200.dat' 'pb_200rnd1300.dat' 'pb_200rnd1400.dat' 'pb_200rnd1500.dat' 'pb_200rnd1600.dat' 'pb_200rnd1700.dat' 'pb_200rnd1800.dat' 'pb_500rnd0100.dat' 'pb_500rnd0200.dat' 'pb_500rnd0300.dat' 'pb_500rnd0400.dat' 'pb_500rnd0500.dat' 'pb_500rnd0600.dat' 'pb_500rnd0700.dat' 'pb_500rnd0800.dat' 'pb_500rnd0900.dat' 'pb_500rnd1000.dat' 'pb_500rnd1100.dat' 'pb_500rnd1200.dat' 'pb_500rnd1300.dat' 'pb_500rnd1400.dat' 'pb_500rnd1500.dat' 'pb_500rnd1600.dat' 'pb_500rnd1700.dat' 'pb_500rnd1800.dat' 'pb_1000rnd0100.dat' 'pb_1000rnd0200.dat' 'pb_1000rnd0300.dat' 'pb_1000rnd0400.dat' 'pb_1000rnd0500.dat' 'pb_1000rnd0600.dat' 'pb_1000rnd0700.dat' 'pb_1000rnd0800.dat' 'pb_2000rnd0100.dat' 'pb_2000rnd0200.dat' 'pb_2000rnd0300.dat' 'pb_2000rnd0400.dat' 'pb_2000rnd0500.dat' 'pb_2000rnd0600.dat' 'pb_2000rnd0700.dat' 'pb_2000rnd0800.dat'
+do
+    echo
+    echo "***** $i *****"
+    echo
+    ./build/bin/convert_to_lp.out < input/instances/$i
+done

@@ -23,8 +23,8 @@ private:
     Formulation _f;
     LagrangeanFormulation _lf;
 
-    vector<benefit_cost_pair> _primal_kc;
-    vector<benefit_cost_pair> _lagrangean_kc;
+    vector<BenefitCostPair> _primal_kc;
+    vector<BenefitCostPair> _lagrangean_kc;
 
     ConstraintLine* _primal_knapsack_restriction;
     ConstraintLine* get_knapsack_constraint(Formulation& f);
@@ -32,7 +32,7 @@ private:
 
     /*Implemented virtual functions*/
     void find_primal_solution(Solution& p);
-    void update_primal(bool p_use_lagrangean_costs);
+    bool update_primal(bool p_use_lagrangean_costs);
     void find_dual_solution(Solution& d){ find_dual_solution(d,-1,-1); }
     void find_dual_solution(Solution& d, const int& fixed_variable, const int& fixed_value);
     void solve_lagrangean_subproblem(Formulation& f, LagrangeanFormulation& lf,

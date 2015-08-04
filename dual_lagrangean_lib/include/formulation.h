@@ -5,6 +5,7 @@
 #include <string>
 #include <sstream>
 #include <utility>
+#include <cmath>
 #include "constants.h"
 #include "types.h"
 #include "constraint_line.h"
@@ -27,7 +28,7 @@ protected:
     int _objective_type;
     bool _initialized_flag;
 
-    bool check_constraint(ConstraintLine& rl,const vector<solution_component>& comps);
+    bool check_constraint(ConstraintLine& rl,const vector<SolutionComponent>& comps);
 
 public:
     Formulation():_initialized_flag(false){};
@@ -51,9 +52,10 @@ public:
     virtual ConstraintLine* replace_constraint(vector<ConstraintMember>& vec_cm, ConstraintLine* cl);
     virtual void add_new_constraint(ConstraintLine* cl);
     virtual void remove_constraint(ConstraintLine* cl);
+    inline ConstraintLine* constraint(const int& index){ return _constraints[index]; }
 
-    virtual double compute(const vector<solution_component>& p_x);    
-    virtual bool check_constraints(const vector<solution_component>& p_x);    
+    virtual double compute(const vector<SolutionComponent>& p_x);    
+    virtual bool check_constraints(const vector<SolutionComponent>& p_x);    
 
     inline void add_new_constraint_callback( SubgradientMethod* obj, void (SubgradientMethod::*_callback)(ConstraintLine*) ){
         _callback_new_constraint_vector.push_back( std::make_pair(obj, _callback) );
@@ -64,6 +66,7 @@ public:
     };
 
     string to_str();
+    string to_lps();
 };
 
 typedef std::vector< std::pair< SubgradientMethod*, void(SubgradientMethod::*)(ConstraintLine*) > >::iterator call_it;

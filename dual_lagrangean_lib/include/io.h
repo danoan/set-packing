@@ -27,11 +27,11 @@ void print_solution(const string& name, Solution& s);
 void print_solution(ostringstream& ss, const string& name, Solution& s);
 
 void print_vector(const string& name, const vector<double>& lbda);
-void print_vector(const string& name, const vector<solution_component>& comps);
+void print_vector(const string& name, const vector<SolutionComponent>& comps);
 void print_vector(const string& name, const vector<double>& lbda, bool short_precision);
 
 void print_vector(ostringstream& ss, const string& name, const vector<double>& lbda);
-void print_vector(ostringstream& ss, const string& name, const vector<solution_component>& comps);
+void print_vector(ostringstream& ss, const string& name, const vector<SolutionComponent>& comps);
 void print_vector(ostringstream& ss, const string& name, const vector<double>& lbda, bool short_precision);
 
 #endif

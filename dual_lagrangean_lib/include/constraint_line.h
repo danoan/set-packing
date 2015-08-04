@@ -27,7 +27,7 @@ private:
     void copy_line(ConstraintLine* p_rl);
 
 public:
-    ConstraintLine(bool p_original=false):_original(p_original){ _id = _next_id++;};
+    ConstraintLine(bool p_original=false):_original(p_original), _lbda(1.0){ _id = _next_id++;};
     ConstraintLine(ConstraintLine* p_rl);
     ConstraintLine(std::vector< ConstraintMember > &p_members, double p_rhs, int p_op, bool p_original=false);
 

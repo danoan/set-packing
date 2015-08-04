@@ -43,12 +43,16 @@ public:
 
     inline int num_dual_constraints(){ return _dual_constraints.size(); }
 
+    inline int num_active_constraints(){ return _active_constraints.size(); }
+    inline const unordered_map< int, ConstraintLine* >& active_constraints(){ return _active_constraints; }    
+    void make_active_constraint(ConstraintLine* cl);
+    void make_inactive_constraint(ConstraintLine* cl);
+
+
     ConstraintLine* replace_constraint(vector<ConstraintMember>& vec_cm, ConstraintLine* cl);
     void add_new_constraint(ConstraintLine* cl);
     void remove_constraint(ConstraintLine* cl);
 
-    void make_active_constraint(ConstraintLine* cl);
-    void make_inactive_constraint(ConstraintLine* cl);
 
     inline line_it primal_begin(){ return _primal_constraints.begin(); };
     inline line_it primal_end(){ return _primal_constraints.end(); };    
@@ -56,8 +60,8 @@ public:
     inline line_it dual_begin(){ return _dual_constraints.begin(); }    
     inline line_it dual_end(){ return _dual_constraints.end(); }
 
-    double compute(const vector<solution_component>& comps);
-    bool check_constraints(const vector<solution_component>& comps);
+    double compute(const vector<SolutionComponent>& comps);
+    bool check_constraints(const vector<SolutionComponent>& comps);
 
     string to_str();
 };

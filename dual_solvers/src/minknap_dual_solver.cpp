@@ -66,7 +66,9 @@ void MinknapDualSolver::find_primal_solution(Solution& p){
     p.vx( _f.compute(p.x()) );
 }
 
-void MinknapDualSolver::update_primal(bool p_use_lagrangean_costs){
+bool MinknapDualSolver::update_primal(bool p_use_lagrangean_costs){
+    double previous_vx = _primal.vx();
+
     if(p_use_lagrangean_costs){
         _lagrangean_kc = compute_benefit_cost(*_primal_knapsack_restriction,_lf.lagrangean_costs());
         find_primal_int_feasible_solution_from_dual(_dual,_f,_lagrangean_kc,_primal);
@@ -74,7 +76,9 @@ void MinknapDualSolver::update_primal(bool p_use_lagrangean_costs){
         find_primal_int_feasible_solution_from_dual(_dual,_f,_primal_kc,_primal);
     }
 
-    _primal.vx( _f.compute(_primal.x()) );        
+    _primal.vx( _f.compute(_primal.x()) );      
+
+    return previous_vx<_primal.vx();    //BETTER PRIMAL FOUND  
 }
 
 int MinknapDualSolver::active_constraints_for_vars(vector<int>& Ix, const int& fixed_variable=-1, const int& fixed_value=-1){
@@ -258,35 +262,29 @@ void MinknapDualSolver::solve_lagrangean_subproblem(Formulation& f, LagrangeanFo
     SubgradientMethod sm(lf,p_max_N,p_pi_factor,p_max_no_improvement,_debug);
     PoolClique pool(lf);
     // bool still_extending = true;
-    printf("RESTRICOES (INICIO): %d\n",_lf.num_constraints());    
+    bool flag_fixing = false;
     while( sm.next(lf,_primal,_dual) ){
         find_dual_solution(_dual);        
-        sm.improvement_check(lf,_dual);
+        flag_fixing = sm.improvement_check(lf,_dual);
 
-        update_primal(p_use_lagrangean_costs);   
+        flag_fixing = flag_fixing || update_primal(p_use_lagrangean_costs);   
 
-        fixing();
-
+        if(flag_fixing){
+            fixing();    
+        }
+        
         // do{
         //     still_extending = pool.extend_pool();
         // }while( !pool.is_pool_updated() && still_extending);        
 
         pool.extend_pool(_dual);
 
-        if(_debug){ 
-            printf("%s\n",sm.log().c_str());
-            
-            print_vector("LAGRANGEAN COSTS", lf.lagrangean_costs());
-            print_solution("PRIMAL",_primal);
-            print_solution("DUAL",_dual);
-        }
+        if(_debug) log(sm,_lf);
 
         if( sm.after_check(_primal,_dual)==false ){
             break;
         }
     }
-    printf("RESTRICOES (FINAL): %d\t REPLACED:%d\n",_lf.num_constraints(),pool.replaced_constraints());
-    printf("NUM ITERATIONS: %d\n",sm.iterations());
 
     return;
 }

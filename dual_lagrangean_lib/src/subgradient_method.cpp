@@ -27,10 +27,6 @@ SubgradientMethod::SubgradientMethod(LagrangeanFormulation& p_lf, int p_max_N,
 bool SubgradientMethod::next(LagrangeanFormulation& lf, Solution& p, Solution& d){
     if(_num_it>_max_N or _pi<1e-8) return false;
 
-    if(_num_it==0){ 
-        _best_value = d.vx();
-    }
-
     double sum_square_g = 0;
     double temp;
     for(subelem_it se_it=_elements.begin();se_it!=_elements.end();se_it++){
@@ -40,17 +36,16 @@ bool SubgradientMethod::next(LagrangeanFormulation& lf, Solution& p, Solution& d
 
     if(sum_square_g==0) return false;
 
-    double T;
     double factor = 1.0;  //Can be used as a way to randomize the algorithm. Not being used, however
     if(lf.objective_type()==MAX_TYPE){
-        T= ( factor*_pi*(1.05*d.vx()-p.vx()) )/sum_square_g;    
+        _step_size= ( factor*_pi*(1.05*d.vx()-p.vx()) )/sum_square_g;    
     }else{
-        T= ( factor*_pi*(1.05*p.vx()-d.vx()) )/sum_square_g;    
+        _step_size= ( factor*_pi*(1.05*p.vx()-d.vx()) )/sum_square_g;    
     }
 
     int group;
     for(subelem_it se_it =_elements.begin();se_it!=_elements.end();se_it++){
-        if( se_it->second.update_lbda(T,group) ){
+        if( se_it->second.update_lbda(_step_size,group) ){
             if(group==1){   //ACTIVE
                 lf.make_active_constraint( se_it->second.constraint() );
             }else{
@@ -60,24 +55,24 @@ bool SubgradientMethod::next(LagrangeanFormulation& lf, Solution& p, Solution& d
     }  
     lf.update_lagrangean_costs();
 
-    if(_DEBUG) log(p,d,lf,T);
-
     return true;
 }
 
-void SubgradientMethod::improvement_check(LagrangeanFormulation& lf, Solution& d){
+bool SubgradientMethod::improvement_check(LagrangeanFormulation& lf, Solution& d){
 
-    if( !( (lf.objective_type()==MAX_TYPE && _best_value>d.vx()) xor 
-           (lf.objective_type()==MIN_TYPE && _best_value<d.vx()) ) ){                
+    if( !( (lf.objective_type()==MAX_TYPE && d.best_value()>d.vx()) xor 
+           (lf.objective_type()==MIN_TYPE && d.best_value()<d.vx()) ) ){                
             _no_improvement+=1;
-    }else{
-        _best_value = d.vx();
-        _no_improvement=0;
-    }
 
-    if(_no_improvement>=_max_no_improvement){
-        _no_improvement = 0;
-        _pi = _pi*_pi_factor;
+            if(_no_improvement>=_max_no_improvement){
+                _no_improvement = 0;
+                _pi = _pi*_pi_factor;
+            }       
+
+        return false; 
+    }else{
+        _no_improvement=0;
+        return true;
     }
 
 }
@@ -90,31 +85,4 @@ bool SubgradientMethod::after_check(Solution& p, Solution& d){
     }       
 
     return true;    
-}
-
-void SubgradientMethod::log(Solution& p, Solution& d, LagrangeanFormulation& lf, double& T){
-    std::ostringstream _buffer;
-
-    _buffer << "SUBGRADIENT ITERATION: " << _num_it << std::endl;
-    _buffer << "PI: " << _pi << std::endl;
-    _buffer << "STEP SIZE: " << T << std::endl;
-    _buffer << "GRADIENT: (";
-    
-    for(subelem_it se_it=_elements.begin();se_it!=_elements.end();se_it++){
-        _buffer << se_it->second.grad() << ",";
-    }
-    _buffer << ")" << std::endl;
-    _buffer << "LBDA: (";
-
-    for(subelem_it se_it=_elements.begin();se_it!=_elements.end();se_it++){
-        _buffer << se_it->second.lbda() << ",";
-    }
-            
-    _buffer << ")" << std::endl;
-
-    _buffer << "STEP SIZE: " << T << std::endl;
-    _buffer << "NO IMPROVEMENT: " << _no_improvement << std::endl;
-    _buffer << "BEST BOUND: " << _best_value << std::endl;
-
-    _out = _buffer.str();
 }

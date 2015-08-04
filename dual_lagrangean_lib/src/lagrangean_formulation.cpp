@@ -165,10 +165,10 @@ void LagrangeanFormulation::remove_constraint(ConstraintLine* cl){
     Formulation::remove_constraint(cl);
 }
 
-double LagrangeanFormulation::compute(const vector<solution_component>& comps){
+double LagrangeanFormulation::compute(const vector<SolutionComponent>& comps){
     double s = 0;
     for(int j=0;j<_c.size();j++){
-        s+=comps[j].x*_lagrangean_costs[j];
+        s+=comps[j].x()*_lagrangean_costs[j];
     }
 
     int i;
@@ -182,7 +182,7 @@ double LagrangeanFormulation::compute(const vector<solution_component>& comps){
     return s;
 }
 
-bool LagrangeanFormulation::check_constraints(const vector<solution_component>& comps){
+bool LagrangeanFormulation::check_constraints(const vector<SolutionComponent>& comps){
     double sum = 0;
 
     ConstraintLine* nlr;

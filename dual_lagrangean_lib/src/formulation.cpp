@@ -42,10 +42,9 @@ Formulation::Formulation(vector< vector<int> >& p_A_index, vector< vector<double
            (p_A_index.size()==p_op.size()) )   ) {
         //ERROR
     }
-    
-    ConstraintLine* rl;
+        
     for(int i=0;i<p_A_index.size();i++){
-        rl = new ConstraintLine(true);
+        ConstraintLine* rl = new ConstraintLine(true);
         for(int j=0;j<p_A_index[i].size();j++){
             ConstraintMember rm;
 
@@ -127,22 +126,22 @@ void Formulation::remove_constraint(ConstraintLine* cl){
     delete cl;
 }
 
-double Formulation::compute(const vector<solution_component>& comps){
+double Formulation::compute(const vector<SolutionComponent>& comps){
     double s = 0;
     for(int j=0;j<_c.size();j++){
-        s+=comps[j].x*_c[j];
+        s+=comps[j].x()*_c[j];
     }
 
     return s;
 }
 
-bool Formulation::check_constraint(ConstraintLine& rl,const vector<solution_component>& comps){
+bool Formulation::check_constraint(ConstraintLine& rl,const vector<SolutionComponent>& comps){
     double sum = 0;
     
     ConstraintMember rm;
     for(member_it it_m=rl.begin();it_m!=rl.end();it_m++){
         rm = (*it_m);
-        sum+= comps[ rm.index ].x*rm.cost;
+        sum+= comps[ rm.index ].x()*rm.cost;
     }
 
     switch(rl.op()){
@@ -166,7 +165,7 @@ bool Formulation::check_constraint(ConstraintLine& rl,const vector<solution_comp
     return true;
 }
 
-bool Formulation::check_constraints(const vector<solution_component>& comps){    
+bool Formulation::check_constraints(const vector<SolutionComponent>& comps){    
     ConstraintLine* rl;
     for(line_it it_r=begin();it_r!=end();it_r++){
         rl = (*it_r).second;
@@ -214,3 +213,72 @@ string Formulation::to_str(){
 
     return s.str();
 }
+
+string Formulation::to_lps(){
+    ostringstream os;
+    if(_objective_type==MAX_TYPE){
+        os << "Maximize" << std::endl;
+    }else{
+        os << "Minimize" << std::endl;
+    }
+
+    os << "obj: ";
+    int x = 1;
+    for(int i=0;i<_c.size();i++){
+        if(_c[i]>0){
+            os << " + ";
+        }else{
+            os << " - ";
+        }
+
+        os << fabs(_c[i]) << " x" << x++; 
+    }
+    os << std::endl;
+
+    os << "Subject To" << std::endl;
+    int c=1;
+    for(line_it l_it=_constraints.begin();l_it!=_constraints.end();l_it++){
+        os << "c" << c++ << ": ";
+        ConstraintLine* cl = (*l_it).second;
+        for(member_it m_it=cl->begin();m_it!=cl->end();m_it++){
+            ConstraintMember cm = *m_it;
+            if(cm.cost<0){
+                os << " - ";
+            }else{
+                os << " + ";
+            }
+            os << fabs(cm.cost) << " x" << cm.index+1;
+        }
+
+        if(cl->op()==EQUAL){
+            os << " = ";
+        }else if(cl->op()==GREATER){
+            os << " > ";
+        }else if(cl->op()==GREATER_EQUAL){
+            os << " >= ";
+        }else if(cl->op()==LESSER){
+            os << " < ";
+        }else if(cl->op()==LESSER_EQUAL){
+            os << " <= ";
+        }
+
+        os << cl->rhs() << std::endl;
+    }
+    os << "End" << std::endl;
+
+    return os.str();
+}
+
+
+// Maximize
+//  obj: x1 + 2 x2 + 3 x3 + x4
+// Subject To
+//  c1: - x1 + x2 + x3 + 10 x4 <= 20
+//  c2: x1 - 3 x2 + x3 <= 30
+//  c3: x2 - 3.5 x4 = 0
+// Bounds
+//  0 <= x1 <= 40
+//  2 <= x4 <= 3
+// General
+//  x4
+// End

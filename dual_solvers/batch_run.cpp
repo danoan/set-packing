@@ -170,12 +170,12 @@ void solve(int max_N, double pi_factor, double gap_improving, Solver s, PrimalHe
 
     
     bool check_validity;
-    check_validity = (solution.first.vx() <= OPT_VALUES[filename] && solution.second.vx() >= OPT_VALUES[filename]);
+    check_validity = (solution.first.best_value() <= OPT_VALUES[filename] && solution.second.best_value() >= OPT_VALUES[filename]);
 
-    double gap_diff = (solution.second.vx() - solution.first.vx());
+    double gap_diff = (solution.second.best_value() - solution.first.best_value());
         
 
-    printf("%.5lf\t%.5lf\t%.5lf\t%.5lf\t %s",solution.first.vx(), solution.second.vx(), gap_diff, OPT_VALUES[filename], check_validity?"OK":"SOMETHING WRONG");
+    printf("%.5lf\t%.5lf\t%.5lf\t%.5lf\t %s",solution.first.best_value(), solution.second.best_value(), gap_diff, OPT_VALUES[filename], check_validity?"OK":"SOMETHING WRONG");
 }
 
 bool is_regular_file(const char* filepath){

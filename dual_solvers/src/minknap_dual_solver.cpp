@@ -275,11 +275,13 @@ void MinknapDualSolver::solve_lagrangean_subproblem(Formulation& f, LagrangeanFo
     PoolClique pool(lf);
     // bool still_extending = true;
     bool flag_fixing = false;
+    bool res_primal;
     while( sm.next(lf,_primal,_dual) ){
         find_dual_solution(_dual);        
         
         flag_fixing = sm.improvement_check(lf,_dual);
-        flag_fixing = flag_fixing || update_primal(p_use_lagrangean_costs);   
+        res_primal = update_primal(p_use_lagrangean_costs);   
+        flag_fixing = flag_fixing || res_primal;
 
         if(flag_fixing){
             fixing();    

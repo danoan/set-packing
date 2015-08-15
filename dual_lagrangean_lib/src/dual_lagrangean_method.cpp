@@ -34,6 +34,20 @@ void DualLagrangeanMethod::log(SubgradientMethod& sm, LagrangeanFormulation& lf)
     os << "PI: " << sm.pi() << "\t\tSTEP SIZE: " << sm.step_size() << "\t\tNO IMPROVEMENT: " << sm.no_improvement() << std::endl << std::endl;
 
 
+    os << "LBDA: (";
+    for(subelem_it s_it=sm.begin();s_it!=sm.end();s_it++){
+        SubgradientElement se = (*s_it).second;
+        os << se.lbda() << ",";
+    }
+    os << ")" << std::endl;
+
+    os << "GRADIENTE: (";
+    for(subelem_it s_it=sm.begin();s_it!=sm.end();s_it++){
+        SubgradientElement se = (*s_it).second;
+        os << se.grad() << ",";
+    }
+    os << ")" << std::endl;
+
     std::unordered_map<int,ConstraintLine*> active_constraints = lf.active_constraints();
     int original_inactive_cliques = 0;
     int discovered_inactive_cliques = 0;

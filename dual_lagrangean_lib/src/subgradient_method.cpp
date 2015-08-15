@@ -19,6 +19,8 @@ SubgradientMethod::SubgradientMethod(LagrangeanFormulation& p_lf, int p_max_N,
         _elements[ cl_it->second->index()] = SubgradientElement(cl_it->second,0);
     }    
 
+    _start=false;
+
     p_lf.add_new_constraint_callback( this, &SubgradientMethod::add_constraint_callback );
     p_lf.add_remove_constraint_callback( this, &SubgradientMethod::remove_constraint_callback );
 
@@ -26,6 +28,10 @@ SubgradientMethod::SubgradientMethod(LagrangeanFormulation& p_lf, int p_max_N,
 
 bool SubgradientMethod::next(LagrangeanFormulation& lf, Solution& p, Solution& d){
     if(_num_it>_max_N or _pi<1e-8) return false;
+    if(_start==false){
+        _best_value = d.best_value();
+        _start=true;
+    }
 
     double sum_square_g = 0;
     double temp;
@@ -60,8 +66,8 @@ bool SubgradientMethod::next(LagrangeanFormulation& lf, Solution& p, Solution& d
 
 bool SubgradientMethod::improvement_check(LagrangeanFormulation& lf, Solution& d){
 
-    if( !( (lf.objective_type()==MAX_TYPE && d.best_value()>d.vx()) xor 
-           (lf.objective_type()==MIN_TYPE && d.best_value()<d.vx()) ) ){                
+    if( (lf.objective_type()==MAX_TYPE && _best_value<d.vx()) or
+        (lf.objective_type()==MIN_TYPE && _best_value>d.vx()) ){                
             _no_improvement+=1;
 
             if(_no_improvement>=_max_no_improvement){
@@ -71,6 +77,7 @@ bool SubgradientMethod::improvement_check(LagrangeanFormulation& lf, Solution& d
 
         return false; 
     }else{
+        _best_value = d.vx();
         _no_improvement=0;
         return true;
     }
@@ -80,9 +87,9 @@ bool SubgradientMethod::improvement_check(LagrangeanFormulation& lf, Solution& d
 bool SubgradientMethod::after_check(Solution& p, Solution& d){
     _num_it+=1;
    
-    if( ( fabs( (d.vx()-p.vx())/p.vx()) ) <= 0.0001 ){
+    if( ( fabs( (d.best_value()-p.best_value()) ) ) < 0.9 ){
         return false;
-    }       
+    }
 
     return true;    
 }

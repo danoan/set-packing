@@ -26,9 +26,7 @@ protected:
     unordered_map< int, ConstraintLine* > _constraints;
     vector<double> _c;
     int _objective_type;
-    bool _initialized_flag;
-
-    bool check_constraint(ConstraintLine& rl,const vector<SolutionComponent>& comps);
+    bool _initialized_flag;    
 
 public:
     Formulation():_initialized_flag(false){};
@@ -53,6 +51,8 @@ public:
     virtual void add_new_constraint(ConstraintLine* cl);
     virtual void remove_constraint(ConstraintLine* cl);
     inline ConstraintLine* constraint(const int& index){ return _constraints[index]; }
+
+    bool check_constraint(ConstraintLine& rl,const vector<SolutionComponent>& comps);
 
     virtual double compute(const vector<SolutionComponent>& p_x);    
     virtual bool check_constraints(const vector<SolutionComponent>& p_x);    

@@ -122,7 +122,7 @@ int PoolClique::extend_pool(Solution& xk){
         temp_cg.remove( vertices_in_clique );
     }
 
-    //For each Maximal Clique above, triy to expand it in the global Colision Graph.
+    //For each Maximal Clique above, trie to expand it in the global Colision Graph.
     //These would be the final_cliques
     std::vector< std::vector<int> > final_cliques;
     for(int i=0;i<cliques_found.size();i++){

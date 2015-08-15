@@ -11,12 +11,16 @@
 #include "types.h"
 #include "io.h"
 
+typedef std::unordered_map<int,SubgradientElement>::iterator subelem_it;
+
 class SubgradientMethod{
 private:
     double _pi;
     double _pi_factor;
 
     int _max_N; //Max Number of Iterations
+    double _best_value;
+    bool _start;
     
     int _no_improvement;    //Number of iterations without any improvement
     int _max_no_improvement;    //Number of no improvement iterations to happen to halve _pi
@@ -42,6 +46,8 @@ public:
     inline const int& no_improvement(){ return _no_improvement; }
     inline const int& num_it(){ return _num_it; }
     inline const double& step_size(){ return _step_size; }
+    inline subelem_it begin(){ return _elements.begin(); }
+    inline subelem_it end(){ return _elements.end(); }
 
 };
 
@@ -57,6 +63,6 @@ class EX_NO_LBDA_IMPROVE_SOLUTION:public exception{
     }
 };
 
-typedef std::unordered_map<int,SubgradientElement>::iterator subelem_it;
+
 
 #endif

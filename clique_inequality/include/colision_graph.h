@@ -22,9 +22,8 @@ class ColisionGraph{
 ACCESS_MODE
     LagrangeanFormulation& _f;    //Used to create the Ultimate ColisionGraph for this formulation
 
-    std::vector<DynamicBitCluster> _vertice_links;
-
     void create_all_edges(std::vector<int>& vars_indexes);
+    std::vector<DynamicBitCluster> _vertice_links;     
 
 public:
     ColisionGraph(LagrangeanFormulation& p_f);    

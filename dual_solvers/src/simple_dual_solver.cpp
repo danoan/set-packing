@@ -91,7 +91,7 @@ void SimpleDualSolver::fixing(){
         if(_dual.x(i)==0  && !(_dual.is_fixed(i)) ){
             find_int_optimal_solution_lagrangean_subproblem(_lf,fixed_sol,i,1);
             // printf("%.4lf  -  %.4lf\n", fixed_sol.vx(), _primal.vx() );
-            if( fixed_sol.vx() <_primal.best_value() ){
+            if( fixed_sol.vx() < _primal.best_value() ){
                 _dual.fix(i,0);
                 _primal.fix(i,0);
                 printf("VAR %d FIXED TO %d\n",i,0);
@@ -120,11 +120,13 @@ void SimpleDualSolver::solve_lagrangean_subproblem(Formulation& f, LagrangeanFor
     // bool still_extending=true;
     PoolClique pool(lf);
     bool flag_fixing = false;
+    bool res_primal;
     while( sm.next(lf,_primal,_dual) ){
         find_dual_solution(_dual);
         
         flag_fixing = sm.improvement_check(lf,_dual);
-        flag_fixing = flag_fixing || update_primal(p_use_lagrangean_costs);   
+        res_primal = update_primal(p_use_lagrangean_costs);   
+        flag_fixing = flag_fixing || res_primal;
         
         if(flag_fixing){
             fixing();    

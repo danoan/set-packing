@@ -249,7 +249,7 @@ void MinknapDualSolver::fixing(){
             if( fixed_sol.vx() < _primal.best_value() ){
                 _dual.fix(i,0);
                 _primal.fix(i,0);
-                printf("VAR %d FIXED TO %d\n",i,0);
+                // printf("VAR %d FIXED TO %d\n",i,0);
             }
         }
     }
@@ -261,7 +261,7 @@ void MinknapDualSolver::fixing(){
             if( fixed_sol.vx() < _primal.best_value() ){
                 _dual.fix(i,1);
                 _primal.fix(i,1);
-                printf("VAR %d FIXED TO %d\n",i,1);
+                // printf("VAR %d FIXED TO %d\n",i,1);
             }
         }
     } 
@@ -276,6 +276,7 @@ void MinknapDualSolver::solve_lagrangean_subproblem(Formulation& f, LagrangeanFo
     // bool still_extending = true;
     bool flag_fixing = false;
     bool res_primal;
+    bool res_local_search;
     while( sm.next(lf,_primal,_dual) ){
         find_dual_solution(_dual);        
         
@@ -286,6 +287,10 @@ void MinknapDualSolver::solve_lagrangean_subproblem(Formulation& f, LagrangeanFo
         if(flag_fixing){
             fixing();    
         }
+
+        if(res_primal){
+            res_local_search = local_search(f,_primal,2);
+        }        
         
         // do{
         //     still_extending = pool.extend_pool();

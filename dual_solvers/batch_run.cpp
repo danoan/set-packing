@@ -175,7 +175,7 @@ void solve(int max_N, double pi_factor, double gap_improving, Solver s, PrimalHe
     double gap_diff = (solution.second.best_value() - solution.first.best_value());
         
 
-    printf("%.5lf\t%.5lf\t%.5lf\t%.5lf\t %s",solution.first.best_value(), solution.second.best_value(), gap_diff, OPT_VALUES[filename], check_validity?"OK":"SOMETHING WRONG");
+    printf("%.5lf\t%.5lf\t%.5lf\t%.5lf\t %s",solution.first.best_value(), solution.second.best_value(), gap_diff/(solution.second.best_value()), OPT_VALUES[filename], check_validity?"OK":"SOMETHING WRONG");
 }
 
 bool is_regular_file(const char* filepath){

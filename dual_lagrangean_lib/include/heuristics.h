@@ -23,4 +23,7 @@ void find_primal_int_feasible_solution_from_dual(Solution& d, Formulation& f,vec
 void find_int_optimal_solution_lagrangean_subproblem(LagrangeanFormulation& lf, Solution& d,  const int fixed_variable=-1, const int fixed_value=-1);
 
 
+bool local_search(Formulation& lf, Solution& p, int deep);
+void local_search_it(Formulation& lf, Solution& p, Solution& best_solution, const int& deep, int curr_deep);
+
 #endif

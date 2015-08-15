@@ -33,3 +33,11 @@ void Solution::vx(double vx){
         }        
     }
 }
+
+bool Solution::operator >(const Solution& s) const{
+    if(_solution_semantic==UPPER_BOUND){
+        return _best_value < s.best_value();
+    }else{
+        return _best_value > s.best_value();
+    }
+}

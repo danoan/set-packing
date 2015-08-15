@@ -30,14 +30,17 @@ public:
     inline bool is_fixed(const int& index){ return _components[index].fixed(); }
 
     inline void fix(const int& index, int val){ _components[index].x(val); _components[index].fixed(true);}
+    inline void unfix(const int& index){ _components[index].fixed(false); }
     
     inline int num_components(){ return _components.size(); }
 
     void vx(double vx);
     inline double vx(){ return _vx; }
 
-    inline double best_value(){ return _best_value; }
+    inline double best_value() const{ return _best_value; }
     inline std::vector<SolutionComponent> best_solution(){ return _best_solution; }
+
+    bool operator >(const Solution& s) const;
 
 };
 

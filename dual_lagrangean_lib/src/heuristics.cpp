@@ -122,3 +122,54 @@ void find_int_optimal_solution_lagrangean_subproblem(LagrangeanFormulation& lf, 
     }
     d.vx( lf.compute(d.x()) );
 }
+
+bool local_search(Formulation& f, Solution& p, int deep){
+    Solution best_solution = p;
+
+    SolutionComponent sc;
+    double start_value = p.best_value();
+    for(int i=0;i<p.num_components();i++){
+        sc = p.x()[i];
+        if(sc.x()==1 && sc.fixed()==false){
+            p.fix(i,0);
+            local_search_it(f,p,best_solution,deep,0);
+            p.unfix(i);
+            p.set_component(i,1);
+        }
+    }
+    
+    if(p.best_value()>start_value){
+        for(int i=0;i<p.num_components();i++){
+            p.set_component(i,best_solution.x(i));
+        }        
+        p.vx( f.compute( p.x() ) );
+        return true;
+    }else{
+        p.vx( f.compute( p.x() ) );
+        return false;
+    }
+}
+
+void local_search_it(Formulation& f, Solution& p, Solution& best_solution, const int& deep, int curr_deep){
+    if(curr_deep==deep){
+        return;
+    }
+    
+    p.vx( f.compute( p.x() ) );
+    if( p > best_solution){
+        best_solution = p;
+    }    
+
+    SolutionComponent sc;
+    for(int i=0;i<p.num_components();i++){
+        sc = p.x()[i];
+        if(sc.x()==0 && sc.fixed()==false){        
+            p.fix(i,1);
+            if(f.check_constraints(p.x())==true){
+                local_search_it(f,p,best_solution,deep,curr_deep+1);    
+            }            
+            p.unfix(i);
+            p.set_component(i,0);
+        }
+    }
+}
